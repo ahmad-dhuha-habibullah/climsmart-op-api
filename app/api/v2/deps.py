@@ -10,7 +10,8 @@ def ctx(request: Request) -> Context:
     c = request.app.state.ctx
     if c is None:
         raise ApiError(503, "storage_not_configured", "v2 needs DATABASE_URL (and durable artifact storage) on this "
-                                                      "deployment; the v1 API is unaffected")
+                                                      "deployment; the v1 API is unaffected",
+                       {"init_error": getattr(request.app.state, "init_error", None)})
     return c
 
 

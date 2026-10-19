@@ -30,6 +30,9 @@ return `{"items", "total", "limit", "offset"}`. **Indicative, not validated**: m
 any estate. Authentication is NOT implemented yet (do not expose a writable v2 publicly)."""
 
 
+LAST_INIT_ERROR: dict = {}
+
+
 def build_context(settings: V2Settings | None = None) -> Context | None:
     settings = settings or V2Settings.from_env()
     if not settings.storage_configured:
@@ -51,8 +54,10 @@ def build_context(settings: V2Settings | None = None) -> Context | None:
         db = Database(settings.database_url)
         ctx = Context(settings=settings, db=db, store=make_store(settings, db))
         apsim_svc.seed_templates(ctx)
-    except Exception:  # never let v2 storage problems take down v1
+    except Exception as e:  # never let v2 storage problems take down v1
+        import re
         log.exception("v2 disabled: storage initialisation failed")
+        LAST_INIT_ERROR["error"] = re.sub(r"://[^@\s]+@", "://***@", f"{e.__class__.__name__}: {e}")[:500]
         return None
     return ctx
 
@@ -61,6 +66,7 @@ def create_v2_app(ctx: Context | None = None, settings: V2Settings | None = None
     v2 = FastAPI(title="ClimSmart-OP API v2", version="2.0.0-alpha", description=DESCRIPTION,
                  docs_url="/docs", redoc_url=None, openapi_url="/openapi.json")
     v2.state.ctx = ctx if ctx is not None else build_context(settings)
+    v2.state.init_error = LAST_INIT_ERROR.get("error")
     install_handlers(v2)
     _install_write_guard(v2)
     v2.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["GET", "POST", "PATCH", "DELETE"],
