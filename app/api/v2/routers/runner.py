@@ -85,3 +85,41 @@ async def callback(run_id: str, status: str = Form(..., pattern="^(succeeded|fai
         return {"run_id": run_id, "status": "succeeded", **result}
     finally:
         shutil.rmtree(workdir, ignore_errors=True)
+
+
+@router.post("/apsim/configs/{config_id}/import-run", status_code=201,
+             summary="Admin (write token): register an APSIM run executed off-platform for this exact config")
+async def import_run(config_id: str, label: str = Form(""), apsimx_sha256: str = Form(...), met_sha256: str = Form(...),
+                     apsim_version: str = Form(...), seconds: float | None = Form(None), runner: str = Form("dev box"),
+                     db: UploadFile = File(...), log: UploadFile | None = File(None), c: Context = Depends(ctx)):
+    """The caller proves it ran the server-generated inputs by echoing their sha256; mismatch -> 409."""
+    from app.core.util import new_id
+    with c.db.session() as s:
+        cfg = s.get(ApsimConfig, config_id)
+        if cfg is None:
+            raise not_found("config", config_id)
+        met = s.get(MetFile, cfg.met_file_id)
+        if (s.get(Artifact, cfg.apsimx_artifact_id).sha256 != apsimx_sha256
+                or s.get(Artifact, met.artifact_id).sha256 != met_sha256):
+            raise conflict("input_mismatch", "uploaded run was not produced from this config's APSIMX/MET artifacts")
+        r = ApsimRun(id=new_id("run"), config_id=cfg.id, plot_id=cfg.plot_id, label=label or None, status="queued")
+        s.add(r)
+        j = jobs.create(s, "apsim.run", {"run_id": r.id, "config_id": cfg.id, "imported": True}, plot_id=cfg.plot_id,
+                        resource_type="apsim_run", resource_id=r.id)
+        r.job_id = j.id
+        rid, jid = r.id, j.id
+    from app.services.apsim import _prepare
+    _prepare(c, jid)
+    jobs.append_log(c, jid, f"importing an APSIM run executed on {runner}")
+    raw = await db.read()
+    log_text = (await log.read()).decode("utf-8", "replace") if log is not None else ""
+    workdir = Path(tempfile.mkdtemp(prefix=f"imp-{rid}-"))
+    try:
+        p = workdir / "simulation.db"
+        p.write_bytes(gzip.decompress(raw) if raw[:2] == b"\x1f\x8b" else raw)
+        runtime = {"mode": f"imported ({runner})", "apsim_version": apsim_version, "version": apsim_version}
+        result = apsim_svc.complete_run(c, jid, rid, p, log_text, seconds, runtime)
+    finally:
+        shutil.rmtree(workdir, ignore_errors=True)
+    jobs.finish(c, jid, "succeeded", result=result)
+    return {"run_id": rid, "job_id": jid, **result}

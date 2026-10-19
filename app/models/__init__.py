@@ -14,6 +14,7 @@ from sqlalchemy import (
     ForeignKey,
     Index,
     Integer,
+    LargeBinary,
     String,
     Text,
     UniqueConstraint,
@@ -190,3 +191,10 @@ class RunOutput(Base):
     first_date: Mapped[date | None] = mapped_column(Date)
     last_date: Mapped[date | None] = mapped_column(Date)
     created_at: Mapped[datetime] = _ts()
+
+
+class ArtifactBlob(Base):
+    """Artifact bytes kept in the database (ARTIFACT_STORE=database): durable without object-storage credentials."""
+    __tablename__ = "artifact_blobs"
+    key: Mapped[str] = mapped_column(String(400), primary_key=True)
+    data: Mapped[bytes] = mapped_column(LargeBinary, nullable=False)

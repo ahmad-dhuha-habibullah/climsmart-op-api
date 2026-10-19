@@ -5,6 +5,7 @@ Mounting keeps the v1 app's /openapi.json, error shapes and middleware behaviour
 from __future__ import annotations
 
 import logging
+import os
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -38,9 +39,17 @@ def build_context(settings: V2Settings | None = None) -> Context | None:
         log.warning("v2 storage is EPHEMERAL (/tmp sqlite): set DATABASE_URL for durable data")
     try:
         if settings.auto_migrate:
-            run_migrations(settings.database_url)
-        ctx = Context(settings=settings, db=Database(settings.database_url),
-                      store=make_store(settings))
+            try:
+                run_migrations(settings.database_url)
+            except Exception:
+                fb = os.environ.get("DATABASE_URL_FALLBACK", "").strip()
+                if not fb:
+                    raise
+                log.warning("primary DATABASE_URL failed; using DATABASE_URL_FALLBACK")
+                settings.database_url = fb
+                run_migrations(fb)
+        db = Database(settings.database_url)
+        ctx = Context(settings=settings, db=db, store=make_store(settings, db))
         apsim_svc.seed_templates(ctx)
     except Exception:  # never let v2 storage problems take down v1
         log.exception("v2 disabled: storage initialisation failed")

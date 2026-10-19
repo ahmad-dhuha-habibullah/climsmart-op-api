@@ -72,7 +72,44 @@ class SupabaseArtifactStore(ArtifactStore):
         return self.cache / key
 
 
-def make_store(settings) -> ArtifactStore:
+class DatabaseArtifactStore(ArtifactStore):
+    """Artifact bytes in the `artifact_blobs` table; reads cached under /tmp for local_path()."""
+
+    backend = "database"
+
+    def __init__(self, db, cache_dir: Path = Path("/tmp/climsmart-artifact-cache")):
+        self.db, self.cache = db, Path(cache_dir)
+
+    def put_bytes(self, key: str, data: bytes) -> None:
+        from app.models import ArtifactBlob
+        with self.db.session() as s:
+            s.merge(ArtifactBlob(key=SupabaseArtifactStore._check(key), data=data))
+
+    def put_file(self, key: str, src: Path) -> None:
+        self.put_bytes(key, Path(src).read_bytes())
+
+    def get_bytes(self, key: str) -> bytes:
+        from app.models import ArtifactBlob
+        p = self.cache / SupabaseArtifactStore._check(key)
+        if p.exists():
+            return p.read_bytes()
+        with self.db.session() as s:
+            b = s.get(ArtifactBlob, key)
+            if b is None:
+                raise FileNotFoundError(key)
+            data = bytes(b.data)
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_bytes(data)
+        return data
+
+    def local_path(self, key: str) -> Path:
+        self.get_bytes(key)
+        return self.cache / key
+
+
+def make_store(settings, db=None) -> ArtifactStore:
+    if settings.artifact_store == "database":
+        return DatabaseArtifactStore(db)
     if settings.artifact_store == "supabase":
         if not (settings.supabase_url and settings.supabase_service_key):
             raise RuntimeError("ARTIFACT_STORE=supabase needs SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY")

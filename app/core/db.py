@@ -23,6 +23,12 @@ class Database:
             if path and path != ":memory:":
                 Path(path).parent.mkdir(parents=True, exist_ok=True)
             kwargs["connect_args"] = {"check_same_thread": False, "timeout": 30}
+        elif url.startswith("postgresql"):
+            from sqlalchemy.pool import NullPool
+            # serverless + Supabase/PgBouncer transaction pooler: no client pool, no server-side prepared statements
+            kwargs["poolclass"] = NullPool
+            if "+psycopg" in url:
+                kwargs["connect_args"] = {"prepare_threshold": None}
         self.engine: Engine = create_engine(url, **kwargs)
         if url.startswith("sqlite"):
             @event.listens_for(self.engine, "connect")
