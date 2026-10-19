@@ -7,3 +7,9 @@ data/apsim/
 *.met
 data/hindcast/
 *.csv.private
+data/v2/
+frontend/node_modules/
+frontend/dist/
+*.db-shm
+*.db-wal
+ci-migrate.db

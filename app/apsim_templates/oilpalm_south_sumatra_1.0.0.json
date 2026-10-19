@@ -1,0 +1,8 @@
+{
+  "slug": "oilpalm-south-sumatra",
+  "version": "1.0.0",
+  "name": "Oil palm, South Sumatra daily (APSIM NG OilPalm)",
+  "crop": "oil_palm",
+  "description": "Oil-palm simulation copied unchanged from ahmad-dhuha-habibullah/ClimSmartOP assets/south_sumatra_oilpalm_daily_forecast.apsimx (run daily by that repo's GitHub Action). Soil is the template's 'Higaturu Series' profile (Sangara Estate, PNG): NOT a Sumatran soil. Indicative, not calibrated.",
+  "source": {"repo": "https://github.com/ahmad-dhuha-habibullah/ClimSmartOP", "path": "assets/south_sumatra_oilpalm_daily_forecast.apsimx", "commit": "52b84f0"}
+}

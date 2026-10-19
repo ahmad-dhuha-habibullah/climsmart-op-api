@@ -7,3 +7,6 @@ data/apsim/
 *.met
 .git
 data/hindcast/
+frontend/
+tests/
+data/v2/

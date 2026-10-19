@@ -20,12 +20,20 @@
     {
       "source": "/openapi.json",
       "destination": "/api/index"
+    },
+    {
+      "source": "/api/v2/:path*",
+      "destination": "/api/index"
+    },
+    {
+      "source": "/app/:path*",
+      "destination": "/app/index.html"
     }
   ],
   "functions": {
     "api/index.py": {
       "maxDuration": 30,
-      "includeFiles": "{config,data/apsim_results,data/forecast_snapshot,docs/examples}/**"
+      "includeFiles": "{config,data/apsim_results,data/forecast_snapshot,docs/examples,app/apsim_templates,migrations}/**"
     }
   }
 }
