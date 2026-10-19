@@ -1,0 +1,9 @@
+.env
+.vercel
+__pycache__/
+*.pyc
+data/apsim/
+*.apsimx
+*.met
+.git
+data/hindcast/

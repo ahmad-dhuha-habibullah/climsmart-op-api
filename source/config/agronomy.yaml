@@ -1,0 +1,42 @@
+# ClimSmart-OP agronomic defaults for the water-balance engine, with source notes.
+# Sources below come from projects/climsmart-op-research.md (Research Analyst, 2026-10-17).
+# "read" = the Systems Engineer re-read the source page/abstract; "via research file" = taken
+# from the research file, not independently re-read. NOTHING here is calibrated to field data.
+# Every value can be overridden per request (query parameters) or by pointing
+# CLIMSMART_AGRONOMY_FILE at your own copy of this file.
+version: "0.2.0"
+status: "provisional defaults taken from literature; not calibrated or validated for any site"
+parameters:
+  root_zone_capacity_mm:
+    value: 115.0
+    plausible_range: [90.0, 150.0]
+    unit: "mm of plant-available water in a 1 m root zone"
+    status: "literature range, single default is a judgement call; provisional"
+    source: >
+      Monzon et al. 2022, Agric. For. Meteorol. 314:108789 (doi:10.1016/j.agrformet.2021.108789),
+      Table 1: 89 / 114 / 147 mm in the top 1 m for sandy clay loam / sandy clay / sandy loam
+      (pedotransfer estimates; Sumatran estates were sandy clay loam to sandy loam). Henson et al.
+      2007, J. Oil Palm Res. 19:398-415: 111 mm in the top 1 m at a Kedah, Malaysia trial.
+      Default 115 mm is the rounded sandy-clay / Kedah value (the founder's APSIM soil is "SandyClay").
+      Replaces the earlier 225 mm, which was the APSIM file's value over 2 m, not a 1 m root zone.
+      Use a measured per-site value whenever one exists.
+  kc:
+    value: 1.0
+    plausible_range: [0.8, 1.15]
+    unit: "dimensionless crop coefficient, mature palm"
+    status: "literature value for mature stands only; young palms need a lower Kc; provisional"
+    source: >
+      FAO-56 Table 12 has no oil-palm row; nearest "Palm Trees" Kc mid = 1.00
+      (https://www.fao.org/4/x0490e/x0490e0b.htm). Monzon 2022 used Kc = 1 for Sumatra/Kalimantan
+      oil palm (citing Carr 2011). Carr 2011, Exp. Agric. 47(4):629-652 reports 0.8-1.0 for
+      well-watered mature oil palm (abstract level). Paredes et al. 2024 (Irrig. Sci.,
+      doi:10.1007/s00271-024-00925-7): Kcb mid 0.85-1.15 from only 3 field sources. No Indonesian field study found.
+  depletion_fraction_p:
+    value: 0.65
+    plausible_range: [0.4, 0.7]
+    unit: "fraction of capacity that can be used before stress starts"
+    status: "generic palm value; literature reports no agreement for oil palm; provisional"
+    source: >
+      FAO-56 Table 22, "Palm Trees" p = 0.65 (https://www.fao.org/4/x0490e/x0490e0e.htm); same p used for
+      mature oil palm in Monzon 2022. Carr 2011 (abstract) states there is no agreement on the allowable
+      depletion for oil palm. FAO-56 p also varies with the evaporative demand; the engine uses a constant p.

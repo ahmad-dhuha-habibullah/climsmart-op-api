@@ -1,0 +1,13 @@
+ClimSmart-OP API
+Copyright (c) the author(s), ClimSmart-ID.
+
+LICENCE: TO BE DECIDED BY THE FOUNDER. No open-source or other licence has been granted.
+Until a licence is chosen, all rights are reserved and the code must not be shared or
+redistributed outside ClimSmart-ID. See docs/LICENSE_DECISION.md.
+
+Third-party data and software keep their own terms:
+- Weather data: Open-Meteo.com, CC BY 4.0 (attribution required). The free Open-Meteo tier is
+  non-commercial use only.
+- NASA POWER (used by scripts/hindcast_2015_elnino.py): free to use, cite NASA POWER.
+- Python and JavaScript dependencies: see requirements.txt and frontend/package.json; each
+  has its own licence (check them before any redistribution).

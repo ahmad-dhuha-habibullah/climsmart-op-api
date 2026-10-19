@@ -1,0 +1,450 @@
+{
+ "meta": {
+  "source": "apsimx",
+  "status": "INDICATIVE, NOT VALIDATED: APSIM-X process-model output, not calibrated for this site.",
+  "generated_at": "2026-10-17T15:10:09+00:00",
+  "precomputed": true,
+  "supported_point": {
+   "name": "Mambang Muda, North Sumatra, Indonesia",
+   "lat": 2.6235,
+   "lon": 99.6922
+  },
+  "note": "APSIM data exist only for Mambang Muda, North Sumatra, Indonesia; everything here is precomputed, indicative and not validated."
+ },
+ "apsim": {
+  "source": "apsimx",
+  "engine": {
+   "name": "APSIM Next Generation",
+   "version": "2026.4.8030.0",
+   "build_date": "2026-04-24",
+   "docker_image_tag": "apsiminitiative/apsimng:8030",
+   "docker_image_digest": "sha256:ab9ecd4512a0abf4423013e4a8334e6ea0f555f9c0b4fc699ab50f0c7218a190",
+   "dotnet": "8.0.26 (bundled in the image)",
+   "run_method": "dotnet Models.dll (no docker)"
+  },
+  "run": {
+   "started_utc": "2026-10-17T15:09:02+00:00",
+   "age_hours": 0.0,
+   "result_stale": false,
+   "runtime_seconds": {
+    "as_is": 6.0,
+    "older_palms_2008": 5.7,
+    "younger_palms_2016": 5.0,
+    "rain_scaled_to_station": 5.1
+   },
+   "today_utc": "2026-10-17",
+   "clock_end": "2026-11-01",
+   "clock_start": "planting day (see scenarios; default 2012-01-01)",
+   "history_days_served": 14
+  },
+  "weather_inputs": {
+   "founder_history_first": "2000-01-01",
+   "founder_history_last": "2022-12-31",
+   "appended_first": "2023-01-01",
+   "last_day": "2026-11-01",
+   "today_utc": "2026-10-17",
+   "rows": 9802,
+   "open_meteo": {
+    "archive_first": "2023-01-01",
+    "archive_last": "2026-10-09",
+    "forecast_api_first": "2026-10-10",
+    "forecast_api_last": "2026-11-01",
+    "grid_lat": 2.6362038,
+    "grid_lon": 99.67121,
+    "sources": [
+     "Open-Meteo archive API (ERA5-based, CC BY 4.0)",
+     "Open-Meteo forecast API (past_days + forecast_days)"
+    ]
+   },
+   "founder_station": {
+    "name": "Merbau Selatan",
+    "lat": 2.56,
+    "lon": 99.65
+   },
+   "site": {
+    "lat": 2.6235,
+    "lon": 99.6922
+   },
+   "overlap_check": {
+    "period": "2013-01-01..2022-12-31",
+    "days": 3652,
+    "annual_rain_mm": {
+     "founder_station": 2554,
+     "open_meteo": 3439
+    },
+    "mean_tmax_c": {
+     "founder_station": 29.67,
+     "open_meteo": 30.06
+    },
+    "mean_tmin_c": {
+     "founder_station": 22.37,
+     "open_meteo": 22.77
+    },
+    "mean_radn_mj_m2": {
+     "founder_station": 17.23,
+     "open_meteo": 17.05
+    },
+    "daily_correlation": {
+     "rain": 0.64,
+     "tmax": 0.8,
+     "radn": 0.84
+    }
+   },
+   "rain_scale_factor_sensitivity": 0.743
+  },
+  "soil": {
+   "profile_depth_mm": 2000,
+   "ll15_sum_mm": 321.4,
+   "dul_sum_mm": 546.9,
+   "sat_sum_mm": 908.3,
+   "plant_available_water_mm": 225.5,
+   "note": "available water = soil water minus LL15 (crop LL is unset in the founder's file); available water is capped at DUL (so the maximum is plant_available_water_mm); water above DUL is shown as water_above_dul_mm"
+  },
+  "edits": [
+   "Weather.FileName: 'assets/clim_MambangMuda.met' -> 'MambangMuda.met'",
+   "Clock.End: '2021-12-31T00:00:00' -> '2026-11-01T00:00:00'",
+   "Palm Management.sowing_date: '01/01/2001 00:00:00' -> '01/01/2012 00:00:00'",
+   "Clock.Start: '2001-01-01T00:00:00' -> '2012-01-01T00:00:00' (clock starts on planting day)"
+  ],
+  "limitations": [
+   "INDICATIVE, NOT VALIDATED: the APSIM-X oil-palm model has not been calibrated or checked against any observation for this site or for Sumatra (the founder's model notes say BunchSizeMax was fitted to Papua New Guinea data and RUE follows Henson & Dolmat 2003).",
+   "Only the Mambang Muda point is supported: there is no APSIM run for any other location.",
+   "Palm age is an assumption, not the estate's: the founder's file plants on 2001-01-01, but run past about 2021 the model breaks (palms 25 years old: leaf area goes negative and APSIM aborts). The copy used here plants on 1 January of an assumed year (default 2012, so about 14.8 years old in Oct 2026) and starts the clock that day. Real block ages, density and management are unknown.",
+   "Soil provenance is undocumented: layer values look partly measured and partly template defaults; a single 2 m profile represents the whole point; initial water and nitrate in 2001 look implausible (spun up since).",
+   "Weather: history 2000-2022 is a nearby station series (about 8-9 km away, source undocumented); 2023 onward is an Open-Meteo model grid cell. The two sources differ (see weather_inputs.overlap_check), so the splice can shift the water balance. Forecast days use forecast rainfall, which is uncertain.",
+   "Free Open-Meteo tier is non-commercial; this is a demo.",
+   "The class on APSIM numbers is taken from APSIM's water-stress index (1 - fw) using the same provisional 0.3/0.5/0.7 cut-offs as the simple bucket (no citable source). It is a different quantity from the bucket's soil depletion: in the model fw = palm transpiration / demand, and transpiration is limited to a supply rate (sum over layers of KL x (soil water - LL15), about 3.5 mm/day in Aug 2026), so fw falls below 1 on high-demand days even when the soil is wetter than field capacity.",
+   "Not a yield forecast. The model reports FFB yield in its annual outputs but that is not served or claimed."
+  ],
+  "thresholds": {
+   "version": "0.2.0-provisional",
+   "cutoff_source": "no citable source, provisional",
+   "classes": [
+    {
+     "name": "low",
+     "label": "Low",
+     "min": 0.0
+    },
+    {
+     "name": "moderate",
+     "label": "Moderate",
+     "min": 0.3
+    },
+    {
+     "name": "high",
+     "label": "High",
+     "min": 0.5
+    },
+    {
+     "name": "critical",
+     "label": "Critical",
+     "min": 0.7
+    }
+   ],
+   "applies_to": "stress_index = 1 - fw (APSIM water-stress factor). Same provisional 0.3/0.5/0.7 cut-offs as the simple bucket, but a DIFFERENT quantity (APSIM supply/demand, not soil depletion): do not compare classes across the two sources"
+  },
+  "scenario": {
+   "id": "as_is",
+   "description": "Default. Palms planted 2012-01-01 (about 14.8 years old in Oct 2026, assumed), Open-Meteo weather as delivered.",
+   "palm_age_years_at_today": 14.8,
+   "summary_next_7_days": {
+    "peak_stress_category": "low",
+    "peak_stress_index": 0.0,
+    "peak_stress_date": "2026-10-17",
+    "min_fw": 1.0,
+    "max_depletion_fraction": 0.0,
+    "rain_mm_total": 103.4,
+    "et_mm_total": 31.8
+   },
+   "daily": [
+    {
+     "date": "2026-10-14",
+     "kind": "past",
+     "rain_mm": 4.6,
+     "eo_mm": 5.44,
+     "et_mm": 6.01,
+     "es_mm": 1.09,
+     "ep_mm": 4.91,
+     "potential_ep_mm": 6.79,
+     "lai": 7.22,
+     "fw": 1.0,
+     "stress_index": 0.0,
+     "understory_fw": 1.0,
+     "soil_water_mm": 724.7,
+     "available_water_mm": 225.5,
+     "water_above_dul_mm": 177.8,
+     "available_fraction": 1.0,
+     "depletion_fraction": 0.0,
+     "runoff_mm": 0.0,
+     "drainage_mm": 4.76,
+     "category": "low",
+     "label": "Low"
+    },
+    {
+     "date": "2026-10-15",
+     "kind": "past",
+     "rain_mm": 8.9,
+     "eo_mm": 5.36,
+     "et_mm": 5.93,
+     "es_mm": 1.07,
+     "ep_mm": 4.84,
+     "potential_ep_mm": 6.75,
+     "lai": 7.23,
+     "fw": 1.0,
+     "stress_index": 0.0,
+     "understory_fw": 1.0,
+     "soil_water_mm": 722.8,
+     "available_water_mm": 225.5,
+     "water_above_dul_mm": 175.9,
+     "available_fraction": 1.0,
+     "depletion_fraction": 0.0,
+     "runoff_mm": 0.0,
+     "drainage_mm": 4.92,
+     "category": "low",
+     "label": "Low"
+    },
+    {
+     "date": "2026-10-16",
+     "kind": "past",
+     "rain_mm": 15.2,
+     "eo_mm": 5.5,
+     "et_mm": 6.1,
+     "es_mm": 1.1,
+     "ep_mm": 4.97,
+     "potential_ep_mm": 7.2,
+     "lai": 7.25,
+     "fw": 1.0,
+     "stress_index": 0.0,
+     "understory_fw": 1.0,
+     "soil_water_mm": 726.5,
+     "available_water_mm": 225.5,
+     "water_above_dul_mm": 179.6,
+     "available_fraction": 1.0,
+     "depletion_fraction": 0.0,
+     "runoff_mm": 0.26,
+     "drainage_mm": 5.06,
+     "category": "low",
+     "label": "Low"
+    },
+    {
+     "date": "2026-10-17",
+     "kind": "forecast",
+     "rain_mm": 32.6,
+     "eo_mm": 3.32,
+     "et_mm": 3.72,
+     "es_mm": 0.65,
+     "ep_mm": 3.07,
+     "potential_ep_mm": 3.61,
+     "lai": 7.26,
+     "fw": 1.0,
+     "stress_index": 0.0,
+     "understory_fw": 1.0,
+     "soil_water_mm": 744.3,
+     "available_water_mm": 225.5,
+     "water_above_dul_mm": 197.4,
+     "available_fraction": 1.0,
+     "depletion_fraction": 0.0,
+     "runoff_mm": 5.95,
+     "drainage_mm": 5.21,
+     "category": "low",
+     "label": "Low"
+    },
+    {
+     "date": "2026-10-18",
+     "kind": "forecast",
+     "rain_mm": 13.3,
+     "eo_mm": 3.45,
+     "et_mm": 3.87,
+     "es_mm": 0.67,
+     "ep_mm": 3.18,
+     "potential_ep_mm": 3.87,
+     "lai": 7.12,
+     "fw": 1.0,
+     "stress_index": 0.0,
+     "understory_fw": 1.0,
+     "soil_water_mm": 748.2,
+     "available_water_mm": 225.5,
+     "water_above_dul_mm": 201.3,
+     "available_fraction": 1.0,
+     "depletion_fraction": 0.0,
+     "runoff_mm": 0.08,
+     "drainage_mm": 5.45,
+     "category": "low",
+     "label": "Low"
+    }
+   ]
+  },
+  "other_scenarios": [
+   {
+    "id": "older_palms_2008",
+    "description": "Sensitivity: palms planted 2008-01-01 (about 18.8 years old), same weather.",
+    "palm_age_years_at_today": 18.8,
+    "summary_next_7_days": {
+     "peak_stress_category": "low",
+     "peak_stress_index": 0.0,
+     "peak_stress_date": "2026-10-17",
+     "min_fw": 1.0,
+     "max_depletion_fraction": 0.0,
+     "rain_mm_total": 103.4,
+     "et_mm_total": 31.4
+    }
+   },
+   {
+    "id": "younger_palms_2016",
+    "description": "Sensitivity: palms planted 2016-01-01 (about 10.8 years old), same weather.",
+    "palm_age_years_at_today": 10.8,
+    "summary_next_7_days": {
+     "peak_stress_category": "low",
+     "peak_stress_index": 0.0,
+     "peak_stress_date": "2026-10-17",
+     "min_fw": 1.0,
+     "max_depletion_fraction": 0.0,
+     "rain_mm_total": 103.4,
+     "et_mm_total": 31.6
+    }
+   },
+   {
+    "id": "rain_scaled_to_station",
+    "description": "Sensitivity: Open-Meteo rain from 2023 scaled by 0.74 so its 2013-2022 annual total matches the founder's station (planted 2012). Shows how much the result depends on the rain source; not a calibration.",
+    "palm_age_years_at_today": 14.8,
+    "summary_next_7_days": {
+     "peak_stress_category": "low",
+     "peak_stress_index": 0.0,
+     "peak_stress_date": "2026-10-17",
+     "min_fw": 1.0,
+     "max_depletion_fraction": 0.0,
+     "rain_mm_total": 76.8,
+     "et_mm_total": 31.8
+    }
+   }
+  ],
+  "monthly_context": [
+   {
+    "month": "2026-07",
+    "rain_mm": 152.0,
+    "eo_mm": 135.0,
+    "et_mm": 146.0,
+    "min_fw": 0.803,
+    "days_fw_below_0_95": 5,
+    "max_depletion_fraction": 0.0
+   },
+   {
+    "month": "2026-08",
+    "rain_mm": 122.0,
+    "eo_mm": 152.0,
+    "et_mm": 142.0,
+    "min_fw": 0.683,
+    "days_fw_below_0_95": 26,
+    "max_depletion_fraction": 0.0
+   },
+   {
+    "month": "2026-09",
+    "rain_mm": 276.0,
+    "eo_mm": 144.0,
+    "et_mm": 147.0,
+    "min_fw": 0.729,
+    "days_fw_below_0_95": 12,
+    "max_depletion_fraction": 0.0
+   }
+  ],
+  "sanity_check_founder_period": {
+   "note": "annual totals from the founder's own setup (planted 2001, original station weather, 2001-2021) re-run with APSIM 2026.4.8030.0; for plausibility checking only",
+   "annual": [
+    {
+     "year": 2019,
+     "palm_age": 19.0,
+     "rain_mm": 2087,
+     "eo_mm": 1599,
+     "et_mm": 1569,
+     "lai": 6.53,
+     "ffb_t_ha": 24.1
+    },
+    {
+     "year": 2020,
+     "palm_age": 20.0,
+     "rain_mm": 2664,
+     "eo_mm": 1498,
+     "et_mm": 1520,
+     "lai": 5.88,
+     "ffb_t_ha": 25.1
+    },
+    {
+     "year": 2021,
+     "palm_age": 21.0,
+     "rain_mm": 2505,
+     "eo_mm": 1502,
+     "et_mm": 1546,
+     "lai": 5.31,
+     "ffb_t_ha": 23.9
+    }
+   ]
+  }
+ },
+ "comparison": {
+  "source": "simple-water-balance",
+  "engine": "fao56-single-bucket 0.1.0",
+  "location": "2.6362038, 99.67121",
+  "parameters": "capacity 115.0 mm, Kc 1.0, p 0.65, spin-up 60 days (provisional literature defaults)",
+  "peak_category": "low",
+  "daily": [
+   {
+    "date": "2026-10-14",
+    "kind": "past",
+    "rain_mm": 10.0,
+    "et0_mm": 4.53,
+    "deficit_mm": 0.0,
+    "deficit_fraction": 0.0,
+    "stress_ratio": 0.0,
+    "category": "low",
+    "label": "Low"
+   },
+   {
+    "date": "2026-10-15",
+    "kind": "past",
+    "rain_mm": 3.6,
+    "et0_mm": 4.55,
+    "deficit_mm": 0.95,
+    "deficit_fraction": 0.0083,
+    "stress_ratio": 0.0,
+    "category": "low",
+    "label": "Low"
+   },
+   {
+    "date": "2026-10-16",
+    "kind": "past",
+    "rain_mm": 10.7,
+    "et0_mm": 4.56,
+    "deficit_mm": 0.0,
+    "deficit_fraction": 0.0,
+    "stress_ratio": 0.0,
+    "category": "low",
+    "label": "Low"
+   },
+   {
+    "date": "2026-10-17",
+    "kind": "forecast",
+    "rain_mm": 42.7,
+    "et0_mm": 2.75,
+    "deficit_mm": 0.0,
+    "deficit_fraction": 0.0,
+    "stress_ratio": 0.0,
+    "category": "low",
+    "label": "Low"
+   },
+   {
+    "date": "2026-10-18",
+    "kind": "forecast",
+    "rain_mm": 15.3,
+    "et0_mm": 2.88,
+    "deficit_mm": 0.0,
+    "deficit_fraction": 0.0,
+    "stress_ratio": 0.0,
+    "category": "low",
+    "label": "Low"
+   }
+  ],
+  "note": "FAO-56 style single bucket on Open-Meteo weather: a different model, weather source and soil from APSIM. Its class is based on soil deficit, APSIM's on its water-stress index; compare trends, not classes.",
+  "weather_stale": false
+ },
+ "comparison_unavailable_reason": null
+}

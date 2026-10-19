@@ -1,0 +1,314 @@
+{
+  "meta": {
+    "status": "assumption, not measured: percentages are risk factors, not observed losses",
+    "mode": "hindcast",
+    "rain_source": "Founder's recorded daily rain 2024-01-01 to 2025-09-30 (station not stated)",
+    "rain_source_note": "Recorded daily rainfall supplied by the founder; station and units as in his workbook (mm per day).",
+    "assumptions_version": "0.1.0-founder-assumptions",
+    "assumptions_source": "founder assumption (ClimSmart-OP proposal)",
+    "window_days": 4,
+    "generated_at": "2026-10-17T00:00:00+00:00"
+  },
+  "inputs": [
+    {
+      "name": "palms",
+      "value": 3900.0,
+      "unit": "palms",
+      "is_example_default": true,
+      "note": "Palms in the block"
+    },
+    {
+      "name": "kg_per_palm",
+      "value": 2.5,
+      "unit": "kg per palm",
+      "is_example_default": true,
+      "note": "Fertiliser dose per palm"
+    },
+    {
+      "name": "price_per_kg",
+      "value": 14500.0,
+      "unit": "Rp per kg",
+      "is_example_default": true,
+      "note": "Fertiliser price"
+    },
+    {
+      "name": "area_ha",
+      "value": 30.0,
+      "unit": "ha",
+      "is_example_default": true,
+      "note": "Block area (used for the per-hectare figure)"
+    }
+  ],
+  "block": {
+    "area_ha": 30.0,
+    "palms": 3900,
+    "kg_per_palm": 2.5,
+    "price_per_kg_rp": 14500,
+    "value_rp": 141375000,
+    "value_per_ha_rp": 4712500
+  },
+  "assumptions": [
+    {
+      "id": "very_high",
+      "label_en": "Very high rain risk",
+      "label_id": "Risiko sangat tinggi (hujan sangat tinggi)",
+      "rule": "total rain in D+1..D+4 is more than 50 mm",
+      "bau_pct": 15.0,
+      "residual_pct": 3.0,
+      "bau_range_pct": null,
+      "residual_range_pct": null,
+      "source": "founder assumption (ClimSmart-OP proposal)",
+      "overridden": false,
+      "basis": "Runoff/leaching potential very high after >50 mm in D+1..D+4"
+    },
+    {
+      "id": "high",
+      "label_en": "High rain risk",
+      "label_id": "Risiko tinggi (hujan tinggi)",
+      "rule": "total rain in D+1..D+3 is more than 35 mm",
+      "bau_pct": 10.0,
+      "residual_pct": 3.0,
+      "bau_range_pct": null,
+      "residual_range_pct": null,
+      "source": "founder assumption (ClimSmart-OP proposal)",
+      "overridden": false,
+      "basis": "Leaching and runoff potential increases after >35 mm in D+1..D+3"
+    },
+    {
+      "id": "dry",
+      "label_en": "Dry risk",
+      "label_id": "Risiko kering (tanpa hujan efektif)",
+      "rule": "no day in D+1..D+3 has effective rain (at least 5.0 mm)",
+      "bau_pct": 5.0,
+      "residual_pct": 2.0,
+      "bau_range_pct": null,
+      "residual_range_pct": null,
+      "source": "founder assumption (ClimSmart-OP proposal)",
+      "overridden": false,
+      "basis": "Fertiliser does not dissolve at once; nitrogen volatilisation risk when there is no effective rain for 3-5 days"
+    },
+    {
+      "id": "safe",
+      "label_en": "Relatively safe",
+      "label_id": "Relatif aman (hujan efektif 5-13 mm)",
+      "rule": "a day in D+1..D+2 has 5 to 13 mm",
+      "bau_pct": 2.5,
+      "residual_pct": 1.5,
+      "bau_range_pct": [
+        2.0,
+        3.0
+      ],
+      "residual_range_pct": [
+        1.0,
+        2.0
+      ],
+      "source": "founder assumption (ClimSmart-OP proposal)",
+      "overridden": false,
+      "basis": "5-13 mm within 1-2 days helps dissolving and early infiltration"
+    },
+    {
+      "id": "not_classified",
+      "label_en": "No listed risk pattern",
+      "label_id": "Pola hujan di luar tabel",
+      "rule": "none of the rows above applies",
+      "bau_pct": 0.0,
+      "residual_pct": 0.0,
+      "bau_range_pct": null,
+      "residual_range_pct": null,
+      "source": "founder assumption (ClimSmart-OP proposal)",
+      "overridden": false,
+      "basis": "The chapter's table has no row for this rain pattern; no risk value is claimed"
+    }
+  ],
+  "planned": {
+    "application_date": "2024-11-05",
+    "window": [
+      {
+        "date": "2024-11-06",
+        "rain_mm": 84.0,
+        "kind": "recorded"
+      },
+      {
+        "date": "2024-11-07",
+        "rain_mm": 31.0,
+        "kind": "recorded"
+      },
+      {
+        "date": "2024-11-08",
+        "rain_mm": 13.0,
+        "kind": "recorded"
+      },
+      {
+        "date": "2024-11-09",
+        "rain_mm": 0.0,
+        "kind": "recorded"
+      }
+    ],
+    "window_rain_total_mm": 128.0,
+    "class_id": "very_high",
+    "class_label_en": "Very high rain risk",
+    "class_label_id": "Risiko sangat tinggi (hujan sangat tinggi)",
+    "bau_pct": 15.0,
+    "residual_pct": 3.0,
+    "bau_risk_rp": 21206250,
+    "residual_risk_rp": 4241250,
+    "avoided_rp": 16965000,
+    "bau_pct_if_applied_without_advice": null
+  },
+  "suggested": {
+    "application_date": "2024-11-06",
+    "window": [
+      {
+        "date": "2024-11-07",
+        "rain_mm": 31.0,
+        "kind": "recorded"
+      },
+      {
+        "date": "2024-11-08",
+        "rain_mm": 13.0,
+        "kind": "recorded"
+      },
+      {
+        "date": "2024-11-09",
+        "rain_mm": 0.0,
+        "kind": "recorded"
+      },
+      {
+        "date": "2024-11-10",
+        "rain_mm": 0.0,
+        "kind": "recorded"
+      }
+    ],
+    "window_rain_total_mm": 44.0,
+    "class_id": "high",
+    "class_label_en": "High rain risk",
+    "class_label_id": "Risiko tinggi (hujan tinggi)",
+    "bau_pct": 10.0,
+    "residual_pct": 3.0,
+    "bau_risk_rp": 14137500,
+    "residual_risk_rp": 4241250,
+    "avoided_rp": 9896250,
+    "bau_pct_if_applied_without_advice": 10.0
+  },
+  "headline": {
+    "value_at_risk_planned_rp": 21206250,
+    "value_at_risk_suggested_rp": 4241250,
+    "avoided_rp": 16965000,
+    "avoided_per_ha_rp": 565500,
+    "suggested_day_class_id": "high",
+    "suggested_day_is_clear": false,
+    "suggested_day_own_risk_rp": 14137500,
+    "avoided_vs_suggested_day_rp": 7068750,
+    "moved": true,
+    "text_en": "If you apply on 05 Nov 2024, about Rp21,206,250 of fertiliser value is at risk (15% assumed for 'very high rain risk'). Moving to 06 Nov 2024 and following the daily forecast, the assumed residual risk is Rp4,241,250. Difference: Rp16,965,000 (Rp565,500 per ha). A risk estimate from the founder's assumptions, not a proven loss. Caution: the suggested day is still 'high rain risk' (10% assumed); using only the table's own factors the difference is Rp7,068,750.",
+    "text_id": "Jika dipupuk pada 05-11-2024, sekitar Rp21.206.250 nilai pupuk berisiko (15% asumsi untuk 'Risiko sangat tinggi (hujan sangat tinggi)'). Dengan pindah ke 06-11-2024 dan mengikuti prakiraan harian, residual risk diasumsikan Rp4.241.250. Selisih: Rp16.965.000 (Rp565.500/ha). Estimasi risiko berdasarkan asumsi pendiri, bukan kerugian yang terbukti. Catatan: hari yang disarankan masih 'Risiko tinggi (hujan tinggi)' (10% asumsi); dengan faktor tabel saja selisihnya Rp7.068.750."
+  },
+  "scale": {
+    "scale_ha": 30.0,
+    "avoided_per_ha_rp": 565500,
+    "avoided_rp": 16965000,
+    "note": "One application of one block. Application frequency, fertiliser type, topography, soil texture, ground cover and application method are not modelled."
+  },
+  "days": [
+    {
+      "date": "2024-11-02",
+      "rain_mm": 4.0,
+      "kind": "recorded"
+    },
+    {
+      "date": "2024-11-03",
+      "rain_mm": 0.0,
+      "kind": "recorded"
+    },
+    {
+      "date": "2024-11-04",
+      "rain_mm": 11.0,
+      "kind": "recorded"
+    },
+    {
+      "date": "2024-11-05",
+      "rain_mm": 3.0,
+      "kind": "recorded"
+    },
+    {
+      "date": "2024-11-06",
+      "rain_mm": 84.0,
+      "kind": "recorded"
+    },
+    {
+      "date": "2024-11-07",
+      "rain_mm": 31.0,
+      "kind": "recorded"
+    },
+    {
+      "date": "2024-11-08",
+      "rain_mm": 13.0,
+      "kind": "recorded"
+    },
+    {
+      "date": "2024-11-09",
+      "rain_mm": 0.0,
+      "kind": "recorded"
+    },
+    {
+      "date": "2024-11-10",
+      "rain_mm": 0.0,
+      "kind": "recorded"
+    }
+  ],
+  "scan": [
+    {
+      "date": "2024-11-02",
+      "class_id": "very_high",
+      "bau_pct": 15.0
+    },
+    {
+      "date": "2024-11-03",
+      "class_id": "very_high",
+      "bau_pct": 15.0
+    },
+    {
+      "date": "2024-11-04",
+      "class_id": "very_high",
+      "bau_pct": 15.0
+    },
+    {
+      "date": "2024-11-05",
+      "class_id": "very_high",
+      "bau_pct": 15.0
+    },
+    {
+      "date": "2024-11-06",
+      "class_id": "high",
+      "bau_pct": 10.0
+    },
+    {
+      "date": "2024-11-07",
+      "class_id": "very_high",
+      "bau_pct": 15.0
+    },
+    {
+      "date": "2024-11-08",
+      "class_id": "high",
+      "bau_pct": 10.0
+    },
+    {
+      "date": "2024-11-09",
+      "class_id": "very_high",
+      "bau_pct": 15.0
+    },
+    {
+      "date": "2024-11-10",
+      "class_id": "very_high",
+      "bau_pct": 15.0
+    }
+  ],
+  "limitations": [
+    "The percentages are the founder's assumptions (risk factors from his chapter), not measured losses: this is a RISK of loss in value terms, never a proven loss.",
+    "One application of one block. Application frequency, fertiliser type, topography, soil texture, ground cover and application method are not modelled.",
+    "Rain is gridded (Open-Meteo) or a recorded series of unknown station; the daily forecast beyond a few days is uncertain, which is what the residual factor stands for.",
+    "Rain patterns not covered by the founder's table (for example 14 to 35 mm) are 'not classified': no risk value is claimed for them.",
+    "The class rules (sum over the window, a 3-day dry window, a day of 5-13 mm for 'safe') are one reading of the chapter and can be changed in config/fertiliser_timing.yaml.",
+    "Scaling to a larger area repeats the block's figure per hectare; it is not an estate forecast."
+  ]
+}

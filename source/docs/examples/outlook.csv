@@ -1,0 +1,23 @@
+# ClimSmart-OP daily outlook, simple water balance (NOT an APSIM crop-model result)
+# source: simple-water-balance (fao56-single-bucket 0.1.0)
+# status: INDICATIVE: model-derived, not agronomically validated, not calibrated to field data.
+# INDICATIVE, NOT VALIDATED: model-derived from gridded weather data; not calibrated to field data; not a yield forecast
+# location: lat 2.6362038, lon 99.67121, timezone Asia/Jakarta
+# parameters: capacity 115.0 mm, Kc 1.0, depletion fraction p 0.65, spin-up 60 days, overridden by caller: none
+# class cut-offs (0.3, 0.5, 0.7 of capacity): no citable source, provisional
+# category is the class of deficit_fraction; thresholds version 0.2.0-provisional (provisional, not agronomically validated)
+# weather: Weather data by Open-Meteo.com (CC BY 4.0) - Free tier is non-commercial use only; commercial use requires a paid Open-Meteo plan or another provider.
+# weather_stale: False
+# generated_at: 2026-10-17T15:10:10+00:00
+# kind: past = recent analysis, forecast = predicted
+source,source_version,date,kind,category,label,deficit_mm,deficit_fraction,stress_ratio,rain_mm
+simple-water-balance,fao56-single-bucket 0.1.0,2026-10-14,past,low,Low,0.0,0.0,0.0,10.0
+simple-water-balance,fao56-single-bucket 0.1.0,2026-10-15,past,low,Low,0.95,0.0083,0.0,3.6
+simple-water-balance,fao56-single-bucket 0.1.0,2026-10-16,past,low,Low,0.0,0.0,0.0,10.7
+simple-water-balance,fao56-single-bucket 0.1.0,2026-10-17,forecast,low,Low,0.0,0.0,0.0,42.7
+simple-water-balance,fao56-single-bucket 0.1.0,2026-10-18,forecast,low,Low,0.0,0.0,0.0,15.3
+simple-water-balance,fao56-single-bucket 0.1.0,2026-10-19,forecast,low,Low,0.0,0.0,0.0,30.7
+simple-water-balance,fao56-single-bucket 0.1.0,2026-10-20,forecast,low,Low,0.0,0.0,0.0,4.0
+simple-water-balance,fao56-single-bucket 0.1.0,2026-10-21,forecast,low,Low,1.02,0.0089,0.0,2.3
+simple-water-balance,fao56-single-bucket 0.1.0,2026-10-22,forecast,low,Low,0.0,0.0,0.0,10.6
+simple-water-balance,fao56-single-bucket 0.1.0,2026-10-23,forecast,low,Low,0.0,0.0,0.0,9.9

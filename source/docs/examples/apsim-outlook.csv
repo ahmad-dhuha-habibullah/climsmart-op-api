@@ -1,0 +1,52 @@
+# ClimSmart-OP daily series, APSIM-X crop-model run (NOT the simple water balance)
+# source: apsimx 2026.4.8030.0 (apsiminitiative/apsimng:8030, dotnet Models.dll (no docker))
+# status: INDICATIVE, NOT VALIDATED: APSIM-X process-model output, not calibrated for this site.
+# INDICATIVE, NOT VALIDATED: APSIM oil-palm model not calibrated for Sumatra; not a yield forecast
+# point: Mambang Muda, North Sumatra, Indonesia (lat 2.6235, lon 99.6922); APSIM data exist ONLY for this point
+# precomputed offline: run started 2026-10-17T15:09:02+00:00 UTC, age 0.0 h, today_utc 2026-10-17
+# scenario: as_is - Default. Palms planted 2012-01-01 (about 14.8 years old in Oct 2026, assumed), Open-Meteo weather as delivered.
+# assumed palm age at run date: 14.8 years (an assumption, not the estate's)
+# weather: founder station history 2000-01-01..2022-12-31 (Merbau Selatan, ~8-9 km away) + Open-Meteo 2023-01-01..2026-11-01
+# weather mismatch measured 2013-01-01..2022-12-31: annual rain station 2554 mm vs Open-Meteo 3439 mm
+# category is the class of stress_index = 1 - fw using cut-offs 0.3, 0.5, 0.7: no citable source, provisional
+# fw = APSIM palm water-stress factor (1 = none); depletion_fraction is soil depletion and is NOT what category is based on
+# units: mm, mm/day, lai m2/m2, fractions 0-1; kind: past = reanalysis weather, forecast = forecast weather
+# limitation: INDICATIVE, NOT VALIDATED: the APSIM-X oil-palm model has not been calibrated or checked against any observation for this site or for Sumatra (the founder's model notes say BunchSizeMax was fitted to Papua New Guinea data and RUE follows Henson & Dolmat 2003).
+# limitation: Only the Mambang Muda point is supported: there is no APSIM run for any other location.
+# limitation: Palm age is an assumption, not the estate's: the founder's file plants on 2001-01-01, but run past about 2021 the model breaks (palms 25 years old: leaf area goes negative and APSIM aborts). The copy used here plants on 1 January of an assumed year (default 2012, so about 14.8 years old in Oct 2026) and starts the clock that day. Real block ages, density and management are unknown.
+# limitation: Soil provenance is undocumented: layer values look partly measured and partly template defaults; a single 2 m profile represents the whole point; initial water and nitrate in 2001 look implausible (spun up since).
+# limitation: Weather: history 2000-2022 is a nearby station series (about 8-9 km away, source undocumented); 2023 onward is an Open-Meteo model grid cell. The two sources differ (see weather_inputs.overlap_check), so the splice can shift the water balance. Forecast days use forecast rainfall, which is uncertain.
+# limitation: Free Open-Meteo tier is non-commercial; this is a demo.
+# limitation: The class on APSIM numbers is taken from APSIM's water-stress index (1 - fw) using the same provisional 0.3/0.5/0.7 cut-offs as the simple bucket (no citable source). It is a different quantity from the bucket's soil depletion: in the model fw = palm transpiration / demand, and transpiration is limited to a supply rate (sum over layers of KL x (soil water - LL15), about 3.5 mm/day in Aug 2026), so fw falls below 1 on high-demand days even when the soil is wetter than field capacity.
+# limitation: Not a yield forecast. The model reports FFB yield in its annual outputs but that is not served or claimed.
+source,source_version,scenario,date,kind,category,label,rain_mm,eo_mm,et_mm,es_mm,ep_mm,potential_ep_mm,lai,fw,stress_index,understory_fw,soil_water_mm,available_water_mm,water_above_dul_mm,available_fraction,depletion_fraction,runoff_mm,drainage_mm
+apsimx,2026.4.8030.0,as_is,2026-10-03,past,low,Low,14.9,4.27,4.76,0.84,3.9,4.81,7.21,1.0,0.0,1.0,704.2,225.5,157.3,1.0,0.0,0.23,2.5
+apsimx,2026.4.8030.0,as_is,2026-10-04,past,low,Low,5.5,4.71,5.24,0.94,4.28,5.7,7.07,1.0,0.0,1.0,701.7,225.5,154.8,1.0,0.0,0.0,2.73
+apsimx,2026.4.8030.0,as_is,2026-10-05,past,low,Low,9.2,4.3,4.75,0.82,3.91,5.13,7.08,1.0,0.0,1.0,703.2,225.5,156.3,1.0,0.0,0.0,2.96
+apsimx,2026.4.8030.0,as_is,2026-10-06,past,low,Low,3.5,4.81,5.31,0.93,4.36,6.21,7.1,1.0,0.0,1.0,698.2,225.5,151.3,1.0,0.0,0.0,3.21
+apsimx,2026.4.8030.0,as_is,2026-10-07,past,low,Low,1.5,5.34,5.88,1.04,4.81,7.17,7.11,1.0,0.0,1.0,690.4,225.5,143.5,1.0,0.0,0.0,3.44
+apsimx,2026.4.8030.0,as_is,2026-10-08,past,low,Low,7.9,4.92,5.43,0.96,4.45,5.96,7.13,1.0,0.0,1.0,689.2,225.5,142.3,1.0,0.0,0.0,3.63
+apsimx,2026.4.8030.0,as_is,2026-10-09,past,low,Low,19.1,4.79,5.29,0.93,4.34,5.49,7.14,1.0,0.0,1.0,698.4,225.5,151.5,1.0,0.0,0.81,3.81
+apsimx,2026.4.8030.0,as_is,2026-10-10,past,low,Low,22.2,4.93,5.45,0.97,4.47,6.01,7.16,1.0,0.0,1.0,709.6,225.5,162.7,1.0,0.0,1.6,3.97
+apsimx,2026.4.8030.0,as_is,2026-10-11,past,low,Low,25.6,4.37,4.85,0.85,3.98,5.86,7.17,1.0,0.0,1.0,723.5,225.5,176.6,1.0,0.0,2.72,4.13
+apsimx,2026.4.8030.0,as_is,2026-10-12,past,low,Low,13.2,2.87,3.21,0.55,2.66,3.18,7.19,1.0,0.0,1.0,729.1,225.5,182.2,1.0,0.0,0.05,4.32
+apsimx,2026.4.8030.0,as_is,2026-10-13,past,low,Low,11.1,4.28,4.76,0.84,3.91,5.44,7.2,1.0,0.0,1.0,730.9,225.5,184.0,1.0,0.0,0.0,4.56
+apsimx,2026.4.8030.0,as_is,2026-10-14,past,low,Low,4.6,5.44,6.01,1.09,4.91,6.79,7.22,1.0,0.0,1.0,724.7,225.5,177.8,1.0,0.0,0.0,4.76
+apsimx,2026.4.8030.0,as_is,2026-10-15,past,low,Low,8.9,5.36,5.93,1.07,4.84,6.75,7.23,1.0,0.0,1.0,722.8,225.5,175.9,1.0,0.0,0.0,4.92
+apsimx,2026.4.8030.0,as_is,2026-10-16,past,low,Low,15.2,5.5,6.1,1.1,4.97,7.2,7.25,1.0,0.0,1.0,726.5,225.5,179.6,1.0,0.0,0.26,5.06
+apsimx,2026.4.8030.0,as_is,2026-10-17,forecast,low,Low,32.6,3.32,3.72,0.65,3.07,3.61,7.26,1.0,0.0,1.0,744.3,225.5,197.4,1.0,0.0,5.95,5.21
+apsimx,2026.4.8030.0,as_is,2026-10-18,forecast,low,Low,13.3,3.45,3.87,0.67,3.18,3.87,7.12,1.0,0.0,1.0,748.2,225.5,201.3,1.0,0.0,0.08,5.45
+apsimx,2026.4.8030.0,as_is,2026-10-19,forecast,low,Low,31.0,4.58,5.05,0.88,4.15,5.74,7.13,1.0,0.0,1.0,763.9,225.5,217.0,1.0,0.0,4.49,5.71
+apsimx,2026.4.8030.0,as_is,2026-10-20,forecast,low,Low,3.7,3.2,3.56,0.6,2.95,3.78,7.15,1.0,0.0,1.0,758.1,225.5,211.2,1.0,0.0,0.0,5.97
+apsimx,2026.4.8030.0,as_is,2026-10-21,forecast,low,Low,4.8,3.94,4.38,0.76,3.61,5.04,7.16,1.0,0.0,1.0,752.2,225.5,205.3,1.0,0.0,0.0,6.28
+apsimx,2026.4.8030.0,as_is,2026-10-22,forecast,low,Low,12.3,5.46,6.01,1.08,4.91,6.66,7.17,1.0,0.0,1.0,752.0,225.5,205.1,1.0,0.0,0.0,6.56
+apsimx,2026.4.8030.0,as_is,2026-10-23,forecast,low,Low,5.7,4.71,5.21,0.92,4.27,5.65,7.19,1.0,0.0,1.0,745.7,225.5,198.8,1.0,0.0,0.0,6.76
+apsimx,2026.4.8030.0,as_is,2026-10-24,forecast,low,Low,10.8,4.35,4.82,0.85,3.97,5.49,7.2,1.0,0.0,1.0,744.7,225.5,197.8,1.0,0.0,0.0,6.94
+apsimx,2026.4.8030.0,as_is,2026-10-25,forecast,low,Low,24.6,4.17,4.64,0.81,3.81,5.29,7.22,1.0,0.0,1.0,755.2,225.5,208.3,1.0,0.0,2.4,7.09
+apsimx,2026.4.8030.0,as_is,2026-10-26,forecast,low,Low,18.6,4.1,4.56,0.8,3.75,5.24,7.23,1.0,0.0,1.0,761.2,225.5,214.3,1.0,0.0,0.79,7.23
+apsimx,2026.4.8030.0,as_is,2026-10-27,forecast,low,Low,7.8,4.28,4.76,0.84,3.91,5.12,7.24,1.0,0.0,1.0,756.9,225.5,210.0,1.0,0.0,0.0,7.34
+apsimx,2026.4.8030.0,as_is,2026-10-28,forecast,low,Low,22.2,3.38,3.78,0.66,3.12,3.58,7.26,1.0,0.0,1.0,766.2,225.5,219.3,1.0,0.0,1.75,7.44
+apsimx,2026.4.8030.0,as_is,2026-10-29,forecast,low,Low,16.2,4.76,5.29,0.95,4.33,6.02,7.27,1.0,0.0,1.0,769.1,225.5,222.2,1.0,0.0,0.4,7.56
+apsimx,2026.4.8030.0,as_is,2026-10-30,forecast,low,Low,7.8,4.88,5.43,0.97,4.44,6.21,7.29,1.0,0.0,1.0,763.8,225.5,216.9,1.0,0.0,0.0,7.64
+apsimx,2026.4.8030.0,as_is,2026-10-31,forecast,low,Low,6.6,4.42,4.92,0.88,4.03,5.48,7.3,1.0,0.0,1.0,757.8,225.5,210.9,1.0,0.0,0.0,7.7
+apsimx,2026.4.8030.0,as_is,2026-11-01,forecast,low,Low,0.0,2.04,2.31,0.39,1.92,2.8,7.15,1.0,0.0,1.0,747.7,225.5,200.8,1.0,0.0,0.0,7.76

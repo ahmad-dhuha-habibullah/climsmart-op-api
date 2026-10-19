@@ -1,0 +1,39 @@
+# ClimSmart-OP outlook thresholds.
+# CUT-OFFS 0.30 / 0.50 / 0.70 : NO CITABLE SOURCE. PROVISIONAL. Not agronomically validated,
+# not calibrated against field observations (Research Analyst found no published support,
+# 2026-10-17). Edit freely; the API loads this file at start-up.
+#
+# metric: soil-water deficit as a fraction of total plant-available water
+#         (deficit_mm / root_zone_capacity_mm), computed by the water-balance engine.
+# Note: the engine's own FAO-56 stress onset is at depletion_fraction_p (default 0.65), which
+# lies BETWEEN the "high" and "critical" cut-offs below. The classes are an outlook scale, not
+# the stress-onset point.
+version: "0.2.0-provisional"
+status: "provisional, not agronomically validated"
+cutoff_source: "no citable source, provisional"
+metric: deficit_fraction_of_taw
+classes:
+  - name: low
+    min: 0.00
+    label: "Low"
+    meaning: "Soil water store is mostly full. No water-stress signal from this model."
+    status: "provisional, not agronomically validated"
+    cutoff_source: "no citable source, provisional"
+  - name: moderate
+    min: 0.30
+    label: "Moderate"
+    meaning: "Store is drawing down; still well above the model's stress-onset level."
+    status: "provisional, not agronomically validated"
+    cutoff_source: "no citable source, provisional"
+  - name: high
+    min: 0.50
+    label: "High"
+    meaning: "Large deficit, approaching the model's stress-onset level (depletion fraction p, default 0.65). Worth watching."
+    status: "provisional, not agronomically validated"
+    cutoff_source: "no citable source, provisional"
+  - name: critical
+    min: 0.70
+    label: "Critical"
+    meaning: "Deficit is beyond the model's stress-onset level; the model reduces transpiration. Needs a local expert's judgement."
+    status: "provisional, not agronomically validated"
+    cutoff_source: "no citable source, provisional"

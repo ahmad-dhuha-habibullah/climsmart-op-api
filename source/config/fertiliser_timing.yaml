@@ -1,0 +1,62 @@
+# Fertiliser-timing risk classes for /v1/fertiliser-timing.
+# SOURCE: the founder's cost-benefit chapter (Bab "Cost Benefit Analysis ClimSmart-OP terhadap pencegahan losses pemupukan",
+# Tabel 3 and Subbab 1.6-1.9). EVERY percentage below is a FOUNDER ASSUMPTION ("faktor risiko simulatif berbasis literatur"),
+# NOT a measured loss. The result is a RISK OF LOSS in value terms, never a proven loss. Callers can override each factor.
+#
+# How a class is chosen (rain = daily mm, D = application date, D+1 is the next day). First match wins, in this order:
+#   very_high : total rain over D+1..D+4 is greater than 50 mm
+#   high      : total rain over D+1..D+3 is greater than 35 mm
+#   dry       : no day in D+1..D+3 reaches the "effective rain" threshold (5 mm)
+#   safe      : at least one day in D+1..D+2 has 5..13 mm (both ends included)
+#   not_classified : anything else (the founder's table has no row for it): factors are 0 and no risk value is claimed
+# The sum-versus-single-day reading, the "dry" window (3 days) and the per-day reading of "safe" are INTERPRETATIONS of the
+# chapter, set here so the founder can change them (see docs/FERTILISER_TIMING.md "Open questions").
+version: "0.1.0-founder-assumptions"
+source_label: "founder assumption (ClimSmart-OP proposal)"
+status: "assumption, not measured: percentages are risk factors, not observed losses"
+window_days: 4            # D+1..D+4 are looked at
+effective_rain_mm: 5.0    # a day with at least this much rain counts as effective rain
+search_before_days: 3     # suggested-day search: how many days earlier than the planned date (never before today in forecast mode)
+search_after_days: 7      # ... and how many days later
+# Order used to pick the "suggested day" (best first). not_classified sits after safe: an unlisted rain pattern is neither
+# confirmed safe nor risky. This ranking is an interpretation too.
+suggest_rank: [safe, not_classified, dry, high, very_high]
+classes:
+  - id: very_high
+    label_en: "Very high rain risk"
+    label_id: "Risiko sangat tinggi (hujan sangat tinggi)"
+    rule: {kind: sum_gt, days: 4, mm: 50.0}
+    bau_pct: "15"
+    residual_pct: "3"
+    basis: "Runoff/leaching potential very high after >50 mm in D+1..D+4"
+  - id: high
+    label_en: "High rain risk"
+    label_id: "Risiko tinggi (hujan tinggi)"
+    rule: {kind: sum_gt, days: 3, mm: 35.0}
+    bau_pct: "10"
+    residual_pct: "3"
+    basis: "Leaching and runoff potential increases after >35 mm in D+1..D+3"
+  - id: dry
+    label_en: "Dry risk"
+    label_id: "Risiko kering (tanpa hujan efektif)"
+    rule: {kind: no_effective_rain, days: 3}
+    bau_pct: "5"
+    residual_pct: "2"
+    basis: "Fertiliser does not dissolve at once; nitrogen volatilisation risk when there is no effective rain for 3-5 days"
+  - id: safe
+    label_en: "Relatively safe"
+    label_id: "Relatif aman (hujan efektif 5-13 mm)"
+    rule: {kind: day_between, days: 2, min_mm: 5.0, max_mm: 13.0}
+    # The chapter gives RANGES here (BAU 2-3 %, residual 1-2 %). The defaults are the midpoints; the ranges are returned too.
+    bau_pct: "2.5"
+    residual_pct: "1.5"
+    bau_range_pct: ["2", "3"]
+    residual_range_pct: ["1", "2"]
+    basis: "5-13 mm within 1-2 days helps dissolving and early infiltration"
+  - id: not_classified
+    label_en: "No listed risk pattern"
+    label_id: "Pola hujan di luar tabel"
+    rule: {kind: fallback}
+    bau_pct: "0"
+    residual_pct: "0"
+    basis: "The chapter's table has no row for this rain pattern; no risk value is claimed"

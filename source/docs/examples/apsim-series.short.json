@@ -1,0 +1,354 @@
+{
+  "meta": {
+    "source": "apsimx",
+    "status": "INDICATIVE, NOT VALIDATED: APSIM-X process-model output, not calibrated for this site.",
+    "engine": "APSIM Next Generation 2026.4.8030.0",
+    "run_started_utc": "2026-10-17T15:09:02+00:00",
+    "age_hours": 0.0,
+    "stale": false,
+    "point": "Mambang Muda, North Sumatra, Indonesia",
+    "lat": 2.6235,
+    "lon": 99.6922,
+    "weather": {
+      "founder_history": "2000-01-01..2022-12-31 (nearby station, source undocumented)",
+      "appended_from": "2023-01-01",
+      "open_meteo": "archive to 2026-10-09, then forecast to 2026-11-01",
+      "note": "Years 2023-2025 are an Open-Meteo HINDCAST; the last partial year includes forecast days. Rain in rain_scaled scenarios is multiplied by the station/Open-Meteo ratio from 2023."
+    },
+    "assumptions": {
+      "assumed_planting_year": 2012,
+      "planting_note": "ASSUMED: palms planted 2012-01-01 (about 14.8 y old in Oct 2026); real block ages are unknown.",
+      "management_from_year": 2023,
+      "management_note": "Management scenarios differ from the base only from 2023; earlier years are identical."
+    },
+    "limitations": [
+      "INDICATIVE, NOT VALIDATED: the oil-palm model was not calibrated or checked against observations for Sumatra; yield here is a MODELLED value for comparing scenarios, not a forecast of harvests.",
+      "Only the Mambang Muda point is supported.",
+      "Scenario differences are model sensitivities (N rate x0.5 / x1.5, 3 vs 6 doses, irrigation rules), not recommendations.",
+      "Annual values exist for full years only (2012-2025); the 2026 partial year is given as yield to date and must not be annualised."
+    ]
+  },
+  "units": {
+    "annual": {
+      "ffb_t_ha": "t/ha/yr",
+      "lai": "m2/m2",
+      "palm_age_y": "y",
+      "rain_mm": "mm/yr",
+      "n_applied_kg_ha": "kg/ha/yr",
+      "n_leached_kg_ha": "kg/ha/yr",
+      "irrigation_mm": "mm/yr",
+      "palm_n_uptake_kg_ha": "kg/ha/yr"
+    },
+    "monthly": {
+      "lai": "m2/m2",
+      "soil_water_mm": "mm",
+      "soil_nitrate_kg_ha": "kg/ha",
+      "stem_mass_g_m2": "g/m2"
+    },
+    "notes": {
+      "ffb_t_ha": "Fresh fruit bunch yield, t per ha per calendar year: the founder's manager sums the model's per-harvest HarvestFFB into Calculations.Script.AnnualYield.",
+      "soil_water_mm": "Total soil water over the 2 m profile on the 1st of the month. It includes water below wilting point (sum of LL15 = 321.4 mm); field capacity (DUL) 546.9 mm, saturation 908.3 mm.",
+      "soil_nitrate_kg_ha": "Total nitrate-N in the profile on the 1st of the month; the .db's _Units table does not state the unit, kg/ha is APSIM's usual unit for TotalNO3 (HYPOTHESIS).",
+      "n_leached_kg_ha": "Nitrate-N leached below the profile, per year; unit not stated in _Units, kg/ha per the model source (HYPOTHESIS).",
+      "stem_mass_g_m2": "Palm stem dry mass, a proxy for biomass (APSIM _Units: g/m^2). Other pools are not reported by the founder's file."
+    }
+  },
+  "soil": {
+    "profile_depth_mm": 2000,
+    "ll15_sum_mm": 321.4,
+    "dul_sum_mm": 546.9,
+    "sat_sum_mm": 908.3,
+    "plant_available_water_mm": 225.5,
+    "note": "available water = soil water minus LL15 (crop LL is unset in the founder's file); available water is capped at DUL (so the maximum is plant_available_water_mm); water above DUL is shown as water_above_dul_mm"
+  },
+  "scenarios": [
+    {
+      "id": "as_delivered__base",
+      "group": "management_as_delivered",
+      "label": "Base (founder's management)",
+      "description": "Founder's N schedule unchanged (about 158.8 kg N/ha/yr at maturity, 3 doses 15 Jan/May/Sep), no irrigation.",
+      "weather_variant": "as_delivered",
+      "is_base": true,
+      "params": {
+        "n_multiplier": 1.0,
+        "n_applications_per_year": 3,
+        "irrigation_rule": null,
+        "management_from_year": 2023
+      },
+      "db_file": "mgmt_as_delivered_base.db",
+      "annual": {
+        "year": [
+          2020,
+          2021,
+          2022,
+          2023,
+          2024,
+          2025
+        ],
+        "ffb_t_ha": [
+          24.018,
+          24.091,
+          20.781,
+          24.261,
+          24.317,
+          22.936
+        ],
+        "lai": [
+          6.579,
+          6.584,
+          6.932,
+          7.141,
+          6.739,
+          6.581
+        ],
+        "palm_age_y": [
+          9.01,
+          10.01,
+          11.01,
+          12.01,
+          13.01,
+          14.01
+        ],
+        "rain_mm": [
+          2663.9,
+          2504.6,
+          3314.3,
+          4084.7,
+          4198.2,
+          3779.5
+        ],
+        "n_applied_kg_ha": [
+          158.8,
+          158.8,
+          158.8,
+          158.8,
+          158.8,
+          158.8
+        ],
+        "n_leached_kg_ha": [
+          118.38,
+          61.62,
+          65.18,
+          38.93,
+          46.38,
+          38.12
+        ],
+        "irrigation_mm": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "palm_n_uptake_kg_ha": [
+          286.1,
+          280.4,
+          261.9,
+          268.3,
+          265.5,
+          291.9
+        ]
+      },
+      "monthly": null,
+      "partial_year": {
+        "year": 2026,
+        "through": "2026-11-01",
+        "ffb_t_ha_to_date": 22.84,
+        "partial": true
+      }
+    },
+    {
+      "id": "as_delivered__n_0_5x",
+      "group": "management_as_delivered",
+      "label": "N fertiliser 0.5x",
+      "description": "Half the founder's N rate from 2023, same dates, no irrigation.",
+      "weather_variant": "as_delivered",
+      "is_base": false,
+      "params": {
+        "n_multiplier": 0.5,
+        "n_applications_per_year": 3,
+        "irrigation_rule": null,
+        "management_from_year": 2023
+      },
+      "db_file": "mgmt_as_delivered_n_0_5x.db",
+      "annual": {
+        "year": [
+          2020,
+          2021,
+          2022,
+          2023,
+          2024,
+          2025
+        ],
+        "ffb_t_ha": [
+          24.018,
+          24.091,
+          20.781,
+          21.959,
+          18.461,
+          19.051
+        ],
+        "lai": [
+          6.579,
+          6.584,
+          6.932,
+          6.552,
+          5.575,
+          5.684
+        ],
+        "palm_age_y": [
+          9.01,
+          10.01,
+          11.01,
+          12.01,
+          13.01,
+          14.01
+        ],
+        "rain_mm": [
+          2663.9,
+          2504.6,
+          3314.3,
+          4084.7,
+          4198.2,
+          3779.5
+        ],
+        "n_applied_kg_ha": [
+          158.8,
+          158.8,
+          158.8,
+          79.4,
+          79.4,
+          79.4
+        ],
+        "n_leached_kg_ha": [
+          118.38,
+          61.62,
+          65.18,
+          32.67,
+          40.78,
+          33.79
+        ],
+        "irrigation_mm": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "palm_n_uptake_kg_ha": [
+          286.1,
+          280.4,
+          261.9,
+          210.1,
+          212.6,
+          235.5
+        ]
+      },
+      "monthly": null,
+      "partial_year": {
+        "year": 2026,
+        "through": "2026-11-01",
+        "ffb_t_ha_to_date": 20.08,
+        "partial": true
+      }
+    },
+    {
+      "id": "as_delivered__n_1_5x",
+      "group": "management_as_delivered",
+      "label": "N fertiliser 1.5x",
+      "description": "1.5 times the founder's N rate from 2023, same dates, no irrigation.",
+      "weather_variant": "as_delivered",
+      "is_base": false,
+      "params": {
+        "n_multiplier": 1.5,
+        "n_applications_per_year": 3,
+        "irrigation_rule": null,
+        "management_from_year": 2023
+      },
+      "db_file": "mgmt_as_delivered_n_1_5x.db",
+      "annual": {
+        "year": [
+          2020,
+          2021,
+          2022,
+          2023,
+          2024,
+          2025
+        ],
+        "ffb_t_ha": [
+          24.018,
+          24.091,
+          20.781,
+          24.371,
+          27.003,
+          26.218
+        ],
+        "lai": [
+          6.579,
+          6.584,
+          6.932,
+          7.195,
+          7.354,
+          7.407
+        ],
+        "palm_age_y": [
+          9.01,
+          10.01,
+          11.01,
+          12.01,
+          13.01,
+          14.01
+        ],
+        "rain_mm": [
+          2663.9,
+          2504.6,
+          3314.3,
+          4084.7,
+          4198.2,
+          3779.5
+        ],
+        "n_applied_kg_ha": [
+          158.8,
+          158.8,
+          158.8,
+          238.1,
+          238.1,
+          238.1
+        ],
+        "n_leached_kg_ha": [
+          118.38,
+          61.62,
+          65.18,
+          64.03,
+          59.27,
+          55.84
+        ],
+        "irrigation_mm": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "palm_n_uptake_kg_ha": [
+          286.1,
+          280.4,
+          261.9,
+          296.6,
+          314.8,
+          318.0
+        ]
+      },
+      "monthly": null,
+      "partial_year": {
+        "year": 2026,
+        "through": "2026-11-01",
+        "ffb_t_ha_to_date": 22.284,
+        "partial": true
+      }
+    }
+  ]
+}

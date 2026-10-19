@@ -1,0 +1,897 @@
+{
+ "meta": {
+  "physical_numbers_source": "apsimx",
+  "economics_source": "user-inputs",
+  "status": "INDICATIVE, NOT VALIDATED: APSIM-X process-model output, not calibrated for this site.",
+  "generated_at": "2026-10-17T15:10:10+00:00",
+  "precomputed": true,
+  "supported_point": {
+   "name": "Mambang Muda, North Sumatra, Indonesia",
+   "lat": 2.6235,
+   "lon": 99.6922
+  },
+  "note": "APSIM scenario numbers exist only for Mambang Muda, North Sumatra, Indonesia and are precomputed; prices are yours; indicative, not validated; no savings or ROI claim."
+ },
+ "engine": {
+  "name": "APSIM Next Generation",
+  "version": "2026.4.8030.0",
+  "build_date": "2026-04-24",
+  "docker_image_tag": "apsiminitiative/apsimng:8030",
+  "docker_image_digest": "sha256:ab9ecd4512a0abf4423013e4a8334e6ea0f555f9c0b4fc699ab50f0c7218a190",
+  "dotnet": "8.0.26 (bundled in the image)",
+  "run_method": "dotnet Models.dll (no docker)"
+ },
+ "run": {
+  "started_utc": "2026-10-17T15:09:02+00:00",
+  "age_hours": 0.0,
+  "result_stale": false,
+  "runtime_seconds": {
+   "as_is": 6.0,
+   "older_palms_2008": 5.7,
+   "younger_palms_2016": 5.0,
+   "rain_scaled_to_station": 5.1
+  },
+  "today_utc": "2026-10-17",
+  "clock_end": "2026-11-01",
+  "clock_start": "planting day (see scenarios; default 2012-01-01)",
+  "history_days_served": 14
+ },
+ "currency": "currency units",
+ "weather_variant": "as_delivered",
+ "weather_variants": {
+  "as_delivered": "Open-Meteo rain as delivered (about +35% vs the founder's station in the 2013-2022 overlap)",
+  "rain_scaled": "Open-Meteo rain from 2023 multiplied by the station/Open-Meteo ratio of the overlap years (sensitivity, not a calibration)"
+ },
+ "inputs": [
+  {
+   "name": "ffb_price_per_tonne",
+   "value": 100.0,
+   "unit": "currency units per tonne FFB",
+   "is_example_default": true,
+   "note": "price you receive for fresh fruit bunches"
+  },
+  {
+   "name": "n_price_per_kg",
+   "value": 1.0,
+   "unit": "currency units per kg N",
+   "is_example_default": true,
+   "note": "cost of fertiliser per kg of nitrogen (product price per kg / N fraction; e.g. urea is 46% N)"
+  },
+  {
+   "name": "water_price_per_m3",
+   "value": 0.1,
+   "unit": "currency units per m3",
+   "is_example_default": true,
+   "note": "cost of irrigation water per m3 (1 mm over 1 ha = 10 m3)"
+  },
+  {
+   "name": "irrigation_fixed_cost_per_ha_year",
+   "value": 0.0,
+   "unit": "currency units per ha per year",
+   "is_example_default": true,
+   "note": "irrigation operating cost that applies only when the scenario irrigates at all (0 = not counted)"
+  },
+  {
+   "name": "harvest_haul_cost_per_tonne",
+   "value": 0.0,
+   "unit": "currency units per tonne FFB",
+   "is_example_default": true,
+   "note": "extra harvest/transport cost per extra tonne of FFB (0 = not counted)"
+  }
+ ],
+ "sensitivity_pct": 20.0,
+ "yield_whatif_pct": 50.0,
+ "evaluation": {
+  "management_from": "2023-01-01",
+  "full_years": [
+   2023,
+   2024,
+   2025
+  ],
+  "partial_year": "year after the last full year, up to the last day of the weather file (includes forecast days); NOT a full year, do not annualise",
+  "weather_note": "2023-2025 weather is a HINDCAST (Open-Meteo archive, grid cell near the site); it is not a forecast of future seasons. Annual FFB needs a full year, which is why a hindcast window is used.",
+  "assumed_planting_year": 2012,
+  "planting_year_note": "ASSUMED (founder's 2001 planting breaks the model beyond ~25 y). Palm age in 2023-2025 is about 11-14 y under this assumption."
+ },
+ "levers": {
+  "exist_and_varied_here": [
+   {
+    "lever": "N fertiliser rate",
+    "how": "multiplier on every N rate in the founder's 'Palm Management' manager code, from 2023 (the founder's code sets rates by palm age; amounts are hard-coded there)"
+   },
+   {
+    "lever": "N fertiliser timing/splitting",
+    "how": "3 doses (15 Jan/May/Sep, founder) vs 6 equal doses (15 Jan/Mar/May/Jul/Sep/Nov)"
+   },
+   {
+    "lever": "Irrigation (water supplement)",
+    "how": "the founder's file contains an Irrigation model but nothing applies water; we ADD a rule-based manager (trigger on fw, fixed mm, minimum days between)"
+   }
+  ],
+  "exist_but_not_varied": [
+   "N form / NO3:NH4 split (hard-coded 50:50)",
+   "harvest interval (hard-coded 14 days)"
+  ],
+  "do_not_exist": [
+   "phosphorus and potassium fertiliser (the model simulates N only)",
+   "a dedicated leaching-prevention practice (cover crop, slow-release N, drainage control): leaching is only an OUTPUT; the only levers that influence it are the N rate and N splitting above",
+   "irrigation scheduling beyond the simple rule we add (no soil-moisture sensors, no forecast-driven rule)"
+  ]
+ },
+ "units": {
+  "ffb_t_ha_yr": "t fresh fruit bunch per ha per calendar year: sum of the model's per-harvest 'HarvestFFB' ([Units(\"t/ha\")], from the OilPalm model source) added up by the founder's manager as Calculations.Script.AnnualYield (report column 'Calculations.Script.AnnualYield' in AnnualOutput)",
+  "n_applied_kg_ha": "kg N per ha (sum of [Fertiliser].NitrogenApplied)",
+  "n_leached_no3_kg_ha": "kg NO3-N per ha leached below the 2 m profile (sum of [Soil].SoilWater.LeachNO3: 'amount of N leaching as NO3-N from the deepest soil layer')",
+  "irrigation_mm": "mm applied (sum of [Irrigation].IrrigationApplied); 1 mm over 1 ha = 10 m3",
+  "drainage_mm": "mm drained below the profile (sum of [Soil].SoilWater.Drainage)"
+ },
+ "formulas": [
+  "d_ffb_t_ha = FFB_scenario - FFB_base   (APSIM-X, mean of the full hindcast years)",
+  "d_revenue = d_ffb_t_ha * ffb_price_per_tonne",
+  "d_extra_harvest_haul_cost = d_ffb_t_ha * harvest_haul_cost_per_tonne   (0 unless you set it)",
+  "d_fertiliser_cost = (N_applied_scenario - N_applied_base) kg N/ha * n_price_per_kg",
+  "d_water_cost = (irrigation_mm_scenario - irrigation_mm_base) * 10 m3 per mm per ha * water_price_per_m3",
+  "d_irrigation_fixed_cost = fixed cost if the scenario irrigates (mm > 0) minus the same for the base",
+  "net_difference = d_revenue - d_extra_harvest_haul_cost - d_fertiliser_cost - d_water_cost - d_irrigation_fixed_cost",
+  "break_even_ffb_price = harvest_haul_cost + (d_fert + d_water + d_fixed) / d_ffb   (price at which net = 0; undefined when d_ffb = 0)",
+  "break_even_yield_factor f: net(f) = f * d_ffb * (ffb_price - harvest_haul_cost) - (d_fert + d_water + d_fixed) = 0  ->  f = (d_fert + d_water + d_fixed) / (d_ffb * (ffb_price - harvest_haul_cost)); f = 1 means APSIM-X's response as simulated",
+  "sensitivity 'unfavourable': FFB price x (1 - p), all cost prices x (1 + p); 'favourable': the reverse; p = sensitivity_pct/100",
+  "yield what-if: d_ffb multiplied by (1 - w), 1, (1 + w) with w = yield_whatif_pct/100; an illustration of a wrong response, NOT an error estimate"
+ ],
+ "scenarios": [
+  {
+   "id": "base",
+   "label": "Base (founder's management)",
+   "description": "Founder's N schedule unchanged (about 158.8 kg N/ha/yr at maturity, 3 doses 15 Jan/May/Sep), no irrigation.",
+   "is_base": true,
+   "params": {
+    "n_multiplier": 1.0,
+    "n_applications_per_year": 3,
+    "irrigation_rule": null,
+    "management_from_year": 2023
+   },
+   "absolute_mean_per_year": {
+    "ffb_t_ha": 23.838,
+    "n_applied_kg_ha": 158.8,
+    "irrigation_mm": 0.0,
+    "n_leached_no3_kg_ha": 41.1,
+    "drainage_mm": 2144.0,
+    "mean_fw": 0.9874,
+    "days_fw_below_0_95": 24.3
+   },
+   "delta_vs_base_per_ha_year": null,
+   "money_vs_base_per_ha_year": null,
+   "sensitivity": null,
+   "yield_whatif": null,
+   "break_even": null,
+   "per_year_hindcast": null,
+   "net_difference_by_weather_variant": null
+  },
+  {
+   "id": "n_0_5x",
+   "label": "N fertiliser 0.5x",
+   "description": "Half the founder's N rate from 2023, same dates, no irrigation.",
+   "is_base": false,
+   "params": {
+    "n_multiplier": 0.5,
+    "n_applications_per_year": 3,
+    "irrigation_rule": null,
+    "management_from_year": 2023
+   },
+   "absolute_mean_per_year": {
+    "ffb_t_ha": 19.82367,
+    "n_applied_kg_ha": 79.4,
+    "irrigation_mm": 0.0,
+    "n_leached_no3_kg_ha": 35.7,
+    "drainage_mm": 2300.0,
+    "mean_fw": 0.9948,
+    "days_fw_below_0_95": 10.7
+   },
+   "delta_vs_base_per_ha_year": {
+    "d_ffb_t_ha": -4.01433,
+    "d_n_applied_kg_ha": -79.38,
+    "d_irrigation_mm": 0.0,
+    "d_irrigation_m3_ha": 0.0,
+    "d_n_leached_no3_kg_ha": -5.4,
+    "d_drainage_mm": 156.0,
+    "d_mean_fw": 0.0074,
+    "d_days_fw_below_0_95": -13.7
+   },
+   "money_vs_base_per_ha_year": {
+    "d_revenue": -401.43,
+    "d_extra_harvest_haul_cost": -0.0,
+    "d_fertiliser_cost": -79.38,
+    "d_water_cost": 0.0,
+    "d_irrigation_fixed_cost": 0.0,
+    "net_difference": -322.05
+   },
+   "sensitivity": [
+    {
+     "case": "base prices",
+     "net_difference": -322.05
+    },
+    {
+     "case": "FFB price low",
+     "net_difference": -241.77
+    },
+    {
+     "case": "FFB price high",
+     "net_difference": -402.34
+    },
+    {
+     "case": "cost prices high",
+     "net_difference": -306.18
+    },
+    {
+     "case": "cost prices low",
+     "net_difference": -337.93
+    },
+    {
+     "case": "unfavourable (FFB low, costs high)",
+     "net_difference": -225.89
+    },
+    {
+     "case": "favourable (FFB high, costs low)",
+     "net_difference": -418.22
+    }
+   ],
+   "yield_whatif": [
+    {
+     "yield_response_factor": 0.5,
+     "d_ffb_t_ha": -2.007,
+     "net_difference": -121.34
+    },
+    {
+     "yield_response_factor": 1.0,
+     "d_ffb_t_ha": -4.014,
+     "net_difference": -322.05
+    },
+    {
+     "yield_response_factor": 1.5,
+     "d_ffb_t_ha": -6.021,
+     "net_difference": -522.77
+    }
+   ],
+   "break_even": {
+    "ffb_price_per_tonne": 19.77,
+    "yield_response_factor": 0.198,
+    "reading": "scenario better than base when the FFB price is BELOW the break-even price (it loses yield but saves cost); and better than base if the real yield loss is smaller than 0.198 x the simulated change (at the ffb price given)"
+   },
+   "per_year_hindcast": [
+    {
+     "year": 2023,
+     "d_ffb_t_ha": -2.302,
+     "d_n_applied_kg_ha": -79.38,
+     "d_irrigation_mm": 0.0,
+     "net_difference": -150.82
+    },
+    {
+     "year": 2024,
+     "d_ffb_t_ha": -5.856,
+     "d_n_applied_kg_ha": -79.38,
+     "d_irrigation_mm": 0.0,
+     "net_difference": -506.22
+    },
+    {
+     "year": 2025,
+     "d_ffb_t_ha": -3.885,
+     "d_n_applied_kg_ha": -79.38,
+     "d_irrigation_mm": 0.0,
+     "net_difference": -309.12
+    }
+   ],
+   "net_difference_by_weather_variant": {
+    "rain_scaled": {
+     "d_ffb_t_ha": -3.47633,
+     "d_n_applied_kg_ha": -79.38,
+     "d_irrigation_mm": 0.0,
+     "net_difference": -268.25
+    }
+   }
+  },
+  {
+   "id": "n_1_5x",
+   "label": "N fertiliser 1.5x",
+   "description": "1.5 times the founder's N rate from 2023, same dates, no irrigation.",
+   "is_base": false,
+   "params": {
+    "n_multiplier": 1.5,
+    "n_applications_per_year": 3,
+    "irrigation_rule": null,
+    "management_from_year": 2023
+   },
+   "absolute_mean_per_year": {
+    "ffb_t_ha": 25.864,
+    "n_applied_kg_ha": 238.1,
+    "irrigation_mm": 0.0,
+    "n_leached_no3_kg_ha": 59.7,
+    "drainage_mm": 2044.0,
+    "mean_fw": 0.9796,
+    "days_fw_below_0_95": 35.3
+   },
+   "delta_vs_base_per_ha_year": {
+    "d_ffb_t_ha": 2.026,
+    "d_n_applied_kg_ha": 79.38,
+    "d_irrigation_mm": 0.0,
+    "d_irrigation_m3_ha": 0.0,
+    "d_n_leached_no3_kg_ha": 18.6,
+    "d_drainage_mm": -100.0,
+    "d_mean_fw": -0.0078,
+    "d_days_fw_below_0_95": 11.0
+   },
+   "money_vs_base_per_ha_year": {
+    "d_revenue": 202.6,
+    "d_extra_harvest_haul_cost": 0.0,
+    "d_fertiliser_cost": 79.38,
+    "d_water_cost": 0.0,
+    "d_irrigation_fixed_cost": 0.0,
+    "net_difference": 123.22
+   },
+   "sensitivity": [
+    {
+     "case": "base prices",
+     "net_difference": 123.22
+    },
+    {
+     "case": "FFB price low",
+     "net_difference": 82.7
+    },
+    {
+     "case": "FFB price high",
+     "net_difference": 163.74
+    },
+    {
+     "case": "cost prices high",
+     "net_difference": 107.34
+    },
+    {
+     "case": "cost prices low",
+     "net_difference": 139.1
+    },
+    {
+     "case": "unfavourable (FFB low, costs high)",
+     "net_difference": 66.82
+    },
+    {
+     "case": "favourable (FFB high, costs low)",
+     "net_difference": 179.62
+    }
+   ],
+   "yield_whatif": [
+    {
+     "yield_response_factor": 0.5,
+     "d_ffb_t_ha": 1.013,
+     "net_difference": 21.92
+    },
+    {
+     "yield_response_factor": 1.0,
+     "d_ffb_t_ha": 2.026,
+     "net_difference": 123.22
+    },
+    {
+     "yield_response_factor": 1.5,
+     "d_ffb_t_ha": 3.039,
+     "net_difference": 224.52
+    }
+   ],
+   "break_even": {
+    "ffb_price_per_tonne": 39.18,
+    "yield_response_factor": 0.392,
+    "reading": "scenario better than base when the FFB price is ABOVE the break-even price; and better than base if the real yield gain is at least 0.392 x the simulated change (at the ffb price given)"
+   },
+   "per_year_hindcast": [
+    {
+     "year": 2023,
+     "d_ffb_t_ha": 0.11,
+     "d_n_applied_kg_ha": 79.38,
+     "d_irrigation_mm": 0.0,
+     "net_difference": -68.38
+    },
+    {
+     "year": 2024,
+     "d_ffb_t_ha": 2.686,
+     "d_n_applied_kg_ha": 79.38,
+     "d_irrigation_mm": 0.0,
+     "net_difference": 189.22
+    },
+    {
+     "year": 2025,
+     "d_ffb_t_ha": 3.282,
+     "d_n_applied_kg_ha": 79.38,
+     "d_irrigation_mm": 0.0,
+     "net_difference": 248.82
+    }
+   ],
+   "net_difference_by_weather_variant": {
+    "rain_scaled": {
+     "d_ffb_t_ha": 0.35033,
+     "d_n_applied_kg_ha": 79.38,
+     "d_irrigation_mm": 0.0,
+     "net_difference": -44.35
+    }
+   }
+  },
+  {
+   "id": "n_split_6x",
+   "label": "Same N, 6 doses/yr",
+   "description": "Founder's annual N rate split into 6 equal doses (15 Jan/Mar/May/Jul/Sep/Nov) instead of 3, no irrigation. The only leaching-related lever the model offers besides the N rate.",
+   "is_base": false,
+   "params": {
+    "n_multiplier": 1.0,
+    "n_applications_per_year": 6,
+    "irrigation_rule": null,
+    "management_from_year": 2023
+   },
+   "absolute_mean_per_year": {
+    "ffb_t_ha": 23.54467,
+    "n_applied_kg_ha": 158.8,
+    "irrigation_mm": 0.0,
+    "n_leached_no3_kg_ha": 42.1,
+    "drainage_mm": 2157.0,
+    "mean_fw": 0.9893,
+    "days_fw_below_0_95": 22.3
+   },
+   "delta_vs_base_per_ha_year": {
+    "d_ffb_t_ha": -0.29333,
+    "d_n_applied_kg_ha": 0.0,
+    "d_irrigation_mm": 0.0,
+    "d_irrigation_m3_ha": 0.0,
+    "d_n_leached_no3_kg_ha": 0.9,
+    "d_drainage_mm": 13.0,
+    "d_mean_fw": 0.0019,
+    "d_days_fw_below_0_95": -2.0
+   },
+   "money_vs_base_per_ha_year": {
+    "d_revenue": -29.33,
+    "d_extra_harvest_haul_cost": -0.0,
+    "d_fertiliser_cost": 0.0,
+    "d_water_cost": 0.0,
+    "d_irrigation_fixed_cost": 0.0,
+    "net_difference": -29.33
+   },
+   "sensitivity": [
+    {
+     "case": "base prices",
+     "net_difference": -29.33
+    },
+    {
+     "case": "FFB price low",
+     "net_difference": -23.47
+    },
+    {
+     "case": "FFB price high",
+     "net_difference": -35.2
+    },
+    {
+     "case": "cost prices high",
+     "net_difference": -29.33
+    },
+    {
+     "case": "cost prices low",
+     "net_difference": -29.33
+    },
+    {
+     "case": "unfavourable (FFB low, costs high)",
+     "net_difference": -23.47
+    },
+    {
+     "case": "favourable (FFB high, costs low)",
+     "net_difference": -35.2
+    }
+   ],
+   "yield_whatif": [
+    {
+     "yield_response_factor": 0.5,
+     "d_ffb_t_ha": -0.147,
+     "net_difference": -14.67
+    },
+    {
+     "yield_response_factor": 1.0,
+     "d_ffb_t_ha": -0.293,
+     "net_difference": -29.33
+    },
+    {
+     "yield_response_factor": 1.5,
+     "d_ffb_t_ha": -0.44,
+     "net_difference": -44.0
+    }
+   ],
+   "break_even": {
+    "ffb_price_per_tonne": null,
+    "yield_response_factor": null,
+    "reading": "no cost difference: the sign of d_ffb alone decides, no break-even exists"
+   },
+   "per_year_hindcast": [
+    {
+     "year": 2023,
+     "d_ffb_t_ha": -0.393,
+     "d_n_applied_kg_ha": 0.0,
+     "d_irrigation_mm": 0.0,
+     "net_difference": -39.3
+    },
+    {
+     "year": 2024,
+     "d_ffb_t_ha": -0.36,
+     "d_n_applied_kg_ha": 0.0,
+     "d_irrigation_mm": 0.0,
+     "net_difference": -36.0
+    },
+    {
+     "year": 2025,
+     "d_ffb_t_ha": -0.127,
+     "d_n_applied_kg_ha": 0.0,
+     "d_irrigation_mm": 0.0,
+     "net_difference": -12.7
+    }
+   ],
+   "net_difference_by_weather_variant": {
+    "rain_scaled": {
+     "d_ffb_t_ha": -0.01067,
+     "d_n_applied_kg_ha": 0.0,
+     "d_irrigation_mm": 0.0,
+     "net_difference": -1.07
+    }
+   }
+  },
+  {
+   "id": "irrigate_fw_lt_0_9",
+   "label": "Water top-up when fw < 0.9",
+   "description": "Founder's N. Rule: if yesterday's fw < 0.9 and 3+ days since the last top-up, apply 10 mm.",
+   "is_base": false,
+   "params": {
+    "n_multiplier": 1.0,
+    "n_applications_per_year": 3,
+    "irrigation_rule": {
+     "trigger_fw": 0.9,
+     "amount_mm": 10.0,
+     "min_days": 3
+    },
+    "management_from_year": 2023
+   },
+   "absolute_mean_per_year": {
+    "ffb_t_ha": 23.768,
+    "n_applied_kg_ha": 158.8,
+    "irrigation_mm": 60.0,
+    "n_leached_no3_kg_ha": 42.0,
+    "drainage_mm": 2206.0,
+    "mean_fw": 0.994,
+    "days_fw_below_0_95": 16.3
+   },
+   "delta_vs_base_per_ha_year": {
+    "d_ffb_t_ha": -0.07,
+    "d_n_applied_kg_ha": 0.0,
+    "d_irrigation_mm": 60.0,
+    "d_irrigation_m3_ha": 600.0,
+    "d_n_leached_no3_kg_ha": 0.8,
+    "d_drainage_mm": 62.0,
+    "d_mean_fw": 0.0066,
+    "d_days_fw_below_0_95": -8.0
+   },
+   "money_vs_base_per_ha_year": {
+    "d_revenue": -7.0,
+    "d_extra_harvest_haul_cost": -0.0,
+    "d_fertiliser_cost": 0.0,
+    "d_water_cost": 60.0,
+    "d_irrigation_fixed_cost": 0.0,
+    "net_difference": -67.0
+   },
+   "sensitivity": [
+    {
+     "case": "base prices",
+     "net_difference": -67.0
+    },
+    {
+     "case": "FFB price low",
+     "net_difference": -65.6
+    },
+    {
+     "case": "FFB price high",
+     "net_difference": -68.4
+    },
+    {
+     "case": "cost prices high",
+     "net_difference": -79.0
+    },
+    {
+     "case": "cost prices low",
+     "net_difference": -55.0
+    },
+    {
+     "case": "unfavourable (FFB low, costs high)",
+     "net_difference": -77.6
+    },
+    {
+     "case": "favourable (FFB high, costs low)",
+     "net_difference": -56.4
+    }
+   ],
+   "yield_whatif": [
+    {
+     "yield_response_factor": 0.5,
+     "d_ffb_t_ha": -0.035,
+     "net_difference": -63.5
+    },
+    {
+     "yield_response_factor": 1.0,
+     "d_ffb_t_ha": -0.07,
+     "net_difference": -67.0
+    },
+    {
+     "yield_response_factor": 1.5,
+     "d_ffb_t_ha": -0.105,
+     "net_difference": -70.5
+    }
+   ],
+   "break_even": {
+    "ffb_price_per_tonne": null,
+    "yield_response_factor": null,
+    "reading": "no positive FFB price makes net zero: worse than base at every price (less yield and higher cost); no positive yield-response factor gives net zero"
+   },
+   "per_year_hindcast": [
+    {
+     "year": 2023,
+     "d_ffb_t_ha": -0.112,
+     "d_n_applied_kg_ha": 0.0,
+     "d_irrigation_mm": 60.0,
+     "net_difference": -71.2
+    },
+    {
+     "year": 2024,
+     "d_ffb_t_ha": -0.287,
+     "d_n_applied_kg_ha": 0.0,
+     "d_irrigation_mm": 40.0,
+     "net_difference": -68.7
+    },
+    {
+     "year": 2025,
+     "d_ffb_t_ha": 0.189,
+     "d_n_applied_kg_ha": 0.0,
+     "d_irrigation_mm": 80.0,
+     "net_difference": -61.1
+    }
+   ],
+   "net_difference_by_weather_variant": {
+    "rain_scaled": {
+     "d_ffb_t_ha": 0.11733,
+     "d_n_applied_kg_ha": 0.0,
+     "d_irrigation_mm": 140.0,
+     "net_difference": -128.27
+    }
+   }
+  },
+  {
+   "id": "irrigate_fw_lt_0_8",
+   "label": "Water top-up when fw < 0.8",
+   "description": "Founder's N. Rule: if yesterday's fw < 0.8 and 3+ days since the last top-up, apply 10 mm.",
+   "is_base": false,
+   "params": {
+    "n_multiplier": 1.0,
+    "n_applications_per_year": 3,
+    "irrigation_rule": {
+     "trigger_fw": 0.8,
+     "amount_mm": 10.0,
+     "min_days": 3
+    },
+    "management_from_year": 2023
+   },
+   "absolute_mean_per_year": {
+    "ffb_t_ha": 23.90267,
+    "n_applied_kg_ha": 158.8,
+    "irrigation_mm": 26.7,
+    "n_leached_no3_kg_ha": 41.3,
+    "drainage_mm": 2168.0,
+    "mean_fw": 0.9918,
+    "days_fw_below_0_95": 19.3
+   },
+   "delta_vs_base_per_ha_year": {
+    "d_ffb_t_ha": 0.06467,
+    "d_n_applied_kg_ha": 0.0,
+    "d_irrigation_mm": 26.667,
+    "d_irrigation_m3_ha": 267.0,
+    "d_n_leached_no3_kg_ha": 0.2,
+    "d_drainage_mm": 24.0,
+    "d_mean_fw": 0.0044,
+    "d_days_fw_below_0_95": -5.0
+   },
+   "money_vs_base_per_ha_year": {
+    "d_revenue": 6.47,
+    "d_extra_harvest_haul_cost": 0.0,
+    "d_fertiliser_cost": 0.0,
+    "d_water_cost": 26.67,
+    "d_irrigation_fixed_cost": 0.0,
+    "net_difference": -20.2
+   },
+   "sensitivity": [
+    {
+     "case": "base prices",
+     "net_difference": -20.2
+    },
+    {
+     "case": "FFB price low",
+     "net_difference": -21.49
+    },
+    {
+     "case": "FFB price high",
+     "net_difference": -18.91
+    },
+    {
+     "case": "cost prices high",
+     "net_difference": -25.53
+    },
+    {
+     "case": "cost prices low",
+     "net_difference": -14.87
+    },
+    {
+     "case": "unfavourable (FFB low, costs high)",
+     "net_difference": -26.83
+    },
+    {
+     "case": "favourable (FFB high, costs low)",
+     "net_difference": -13.57
+    }
+   ],
+   "yield_whatif": [
+    {
+     "yield_response_factor": 0.5,
+     "d_ffb_t_ha": 0.032,
+     "net_difference": -23.43
+    },
+    {
+     "yield_response_factor": 1.0,
+     "d_ffb_t_ha": 0.065,
+     "net_difference": -20.2
+    },
+    {
+     "yield_response_factor": 1.5,
+     "d_ffb_t_ha": 0.097,
+     "net_difference": -16.97
+    }
+   ],
+   "break_even": {
+    "ffb_price_per_tonne": 412.37,
+    "yield_response_factor": 4.124,
+    "reading": "scenario better than base when the FFB price is ABOVE the break-even price; and better than base if the real yield gain is at least 4.12 x the simulated change (at the ffb price given)"
+   },
+   "per_year_hindcast": [
+    {
+     "year": 2023,
+     "d_ffb_t_ha": 0.0,
+     "d_n_applied_kg_ha": 0.0,
+     "d_irrigation_mm": 0.0,
+     "net_difference": 0.0
+    },
+    {
+     "year": 2024,
+     "d_ffb_t_ha": -0.029,
+     "d_n_applied_kg_ha": 0.0,
+     "d_irrigation_mm": 20.0,
+     "net_difference": -22.9
+    },
+    {
+     "year": 2025,
+     "d_ffb_t_ha": 0.223,
+     "d_n_applied_kg_ha": 0.0,
+     "d_irrigation_mm": 60.0,
+     "net_difference": -37.7
+    }
+   ],
+   "net_difference_by_weather_variant": {
+    "rain_scaled": {
+     "d_ffb_t_ha": 0.16233,
+     "d_n_applied_kg_ha": 0.0,
+     "d_irrigation_mm": 76.667,
+     "net_difference": -60.43
+    }
+   }
+  }
+ ],
+ "partial_year": {
+  "base": {
+   "year": 2026,
+   "days": 305,
+   "partial": true,
+   "first_day": "2026-01-01",
+   "last_day": "2026-11-01",
+   "ffb_t_ha": 22.84,
+   "n_applied_kg_ha": 158.76,
+   "n_leached_no3_kg_ha": 16.53,
+   "irrigation_mm": 0.0,
+   "drainage_mm": 778.0,
+   "rain_mm": 2400.0,
+   "mean_fw": 0.953,
+   "min_fw": 0.632,
+   "days_fw_below_0_95": 80
+  },
+  "n_0_5x": {
+   "year": 2026,
+   "days": 305,
+   "partial": true,
+   "first_day": "2026-01-01",
+   "last_day": "2026-11-01",
+   "ffb_t_ha": 20.08,
+   "n_applied_kg_ha": 79.38,
+   "n_leached_no3_kg_ha": 15.35,
+   "irrigation_mm": 0.0,
+   "drainage_mm": 946.0,
+   "rain_mm": 2400.0,
+   "mean_fw": 0.9917,
+   "min_fw": 0.764,
+   "days_fw_below_0_95": 21
+  },
+  "n_1_5x": {
+   "year": 2026,
+   "days": 305,
+   "partial": true,
+   "first_day": "2026-01-01",
+   "last_day": "2026-11-01",
+   "ffb_t_ha": 22.284,
+   "n_applied_kg_ha": 238.14,
+   "n_leached_no3_kg_ha": 37.33,
+   "irrigation_mm": 0.0,
+   "drainage_mm": 773.0,
+   "rain_mm": 2400.0,
+   "mean_fw": 0.9533,
+   "min_fw": 0.633,
+   "days_fw_below_0_95": 79
+  },
+  "n_split_6x": {
+   "year": 2026,
+   "days": 305,
+   "partial": true,
+   "first_day": "2026-01-01",
+   "last_day": "2026-11-01",
+   "ffb_t_ha": 23.103,
+   "n_applied_kg_ha": 132.3,
+   "n_leached_no3_kg_ha": 17.12,
+   "irrigation_mm": 0.0,
+   "drainage_mm": 777.0,
+   "rain_mm": 2400.0,
+   "mean_fw": 0.9527,
+   "min_fw": 0.632,
+   "days_fw_below_0_95": 80
+  },
+  "irrigate_fw_lt_0_9": {
+   "year": 2026,
+   "days": 305,
+   "partial": true,
+   "first_day": "2026-01-01",
+   "last_day": "2026-11-01",
+   "ffb_t_ha": 22.599,
+   "n_applied_kg_ha": 158.76,
+   "n_leached_no3_kg_ha": 19.62,
+   "irrigation_mm": 210.0,
+   "drainage_mm": 967.0,
+   "rain_mm": 2400.0,
+   "mean_fw": 0.9785,
+   "min_fw": 0.742,
+   "days_fw_below_0_95": 49
+  },
+  "irrigate_fw_lt_0_8": {
+   "year": 2026,
+   "days": 305,
+   "partial": true,
+   "first_day": "2026-01-01",
+   "last_day": "2026-11-01",
+   "ffb_t_ha": 22.711,
+   "n_applied_kg_ha": 158.76,
+   "n_leached_no3_kg_ha": 17.35,
+   "irrigation_mm": 90.0,
+   "drainage_mm": 857.0,
+   "rain_mm": 2400.0,
+   "mean_fw": 0.9659,
+   "min_fw": 0.701,
+   "days_fw_below_0_95": 68
+  }
+ },
+ "limitations": [
+  "APSIM-X yield response is UNVALIDATED for this site: the founder's model has no Sumatra calibration, no comparison with measured FFB, and only N (no P/K) is modelled. Treat deltas as model behaviour, not as measured response.",
+  "Palm age is ASSUMED (planted 2012-01-01 in the model copy; the founder's 2001 planting breaks the model beyond about 25 years).",
+  "Weather 2023-2025 is a hindcast from Open-Meteo (about +35% more rain than the founder's station in the overlap years); the rain_scaled variant shows how much the answer depends on that. It is not a forecast of future seasons.",
+  "The yield response is not instantaneous in the model: with N 1.5x the first year (2023) differs from base by about 0 t/ha and the gain appears in 2024-2025, so a 3-year mean mixes a lag period with the response (cause, probably bunch development time, not verified). The per-year table shows this; a longer window was not run.",
+  "One point only (Mambang Muda), one soil, one management schedule hard-coded in the founder's manager (rates by palm age, 14-day harvest).",
+  "Differences of about 1 t FFB/ha over three years or less are within what harvest timing and small model changes alone produce (for example splitting the same N into 6 doses changes 3-year FFB by about 1%); do not read them as real effects.",
+  "Prices are your inputs. Defaults are placeholders ('example, replace with your costs'), not market data. Not counted: capital and installation cost, labour, N application cost, discounting, price risk, other nutrients, environmental value of reduced leaching.",
+  "No savings, profit or return-on-investment claim is made or implied. 'net_difference' is a per-hectare yearly difference between two model scenarios, nothing more."
+ ]
+}
