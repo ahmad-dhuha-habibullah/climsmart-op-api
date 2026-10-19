@@ -24,3 +24,18 @@ include = ["climsmart*"]
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+extend-exclude = ["frontend", "public", "node_modules"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "B", "UP", "I"]
+ignore = ["B008", "UP017", "UP035", "UP045", "UP007", "B904"]
+
+[tool.ruff.lint.per-file-ignores]
+# v1 package is kept byte-compatible; it is linted for real errors only (no style rewrites).
+"climsmart/**" = ["E501", "E731", "E402", "F401", "F541", "B", "UP", "I", "W"]
+"api/index.py" = ["E402", "I"]
+"migrations/**" = ["E501", "I", "UP"]
