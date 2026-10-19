@@ -34,11 +34,17 @@ def build_context(settings: V2Settings | None = None) -> Context | None:
     if not settings.storage_configured:
         log.warning("v2 disabled: no DATABASE_URL on this deployment")
         return None
-    if settings.auto_migrate:
-        run_migrations(settings.database_url)
-    ctx = Context(settings=settings, db=Database(settings.database_url),
-                  store=LocalArtifactStore(settings.artifact_dir))
-    apsim_svc.seed_templates(ctx)
+    if settings.ephemeral:
+        log.warning("v2 storage is EPHEMERAL (/tmp sqlite): set DATABASE_URL for durable data")
+    try:
+        if settings.auto_migrate:
+            run_migrations(settings.database_url)
+        ctx = Context(settings=settings, db=Database(settings.database_url),
+                      store=LocalArtifactStore(settings.artifact_dir))
+        apsim_svc.seed_templates(ctx)
+    except Exception:  # never let v2 storage problems take down v1
+        log.exception("v2 disabled: storage initialisation failed")
+        return None
     return ctx
 
 

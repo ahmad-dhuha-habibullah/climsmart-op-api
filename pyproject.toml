@@ -44,4 +44,5 @@ ignore = ["B008", "UP017", "UP035", "UP045", "UP007", "B904"]
 # v1 package is kept byte-compatible; it is linted for real errors only (no style rewrites).
 "climsmart/**" = ["E501", "E731", "E402", "F401", "F541", "B", "UP", "I", "W"]
 "api/index.py" = ["E402", "I"]
+"scripts/**" = ["E501"]
 "migrations/**" = ["E501", "I", "UP", "W291"]

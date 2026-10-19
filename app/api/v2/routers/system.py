@@ -94,4 +94,5 @@ def health(c: Context = Depends(ctx)):
     except runner.RuntimeUnavailable as e:
         apsim = {"available": False, "reason": str(e)}
     return {"status": "ok", "database": c.db.engine.dialect.name, "artifact_store": c.store.backend,
+            "ephemeral_storage": c.settings.ephemeral,
             "job_mode": c.settings.job_mode, "jobs": {"queued": queued, "running": running}, "apsim": apsim}

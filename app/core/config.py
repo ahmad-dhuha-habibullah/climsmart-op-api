@@ -27,10 +27,11 @@ class V2Settings:
     open_meteo_api_key: str | None
     weather_timeout_seconds: float
     on_vercel: bool
+    ephemeral: bool = False  # True when storage is a throwaway /tmp sqlite (Vercel without DATABASE_URL)
 
     @property
     def storage_configured(self) -> bool:
-        """On Vercel the filesystem is ephemeral: v2 needs an explicit DATABASE_URL there."""
+        """A database URL is always resolved (on Vercel without DATABASE_URL: an ephemeral /tmp sqlite)."""
         return bool(self.database_url)
 
     @classmethod
@@ -38,8 +39,11 @@ class V2Settings:
         env = os.environ
         on_vercel = bool(env.get("VERCEL"))
         db = env.get("DATABASE_URL", "").strip() or None
+        ephemeral = False
         if db is None and not on_vercel:
             db = f"sqlite:///{ROOT / 'data' / 'v2' / 'climsmart.db'}"
+        elif db is None:  # Vercel: /tmp is per-instance and wiped on cold start -> data is NOT durable
+            db, ephemeral = "sqlite:////tmp/climsmart-v2.db", True
         default_art = Path("/tmp/climsmart-artifacts") if on_vercel else ROOT / "data" / "v2" / "artifacts"
         return cls(
             database_url=db,
@@ -53,4 +57,5 @@ class V2Settings:
             open_meteo_api_key=env.get("OPEN_METEO_API_KEY", "").strip() or None,
             weather_timeout_seconds=float(env.get("WEATHER_TIMEOUT_SECONDS", "30") or 30),
             on_vercel=on_vercel,
+            ephemeral=ephemeral,
         )

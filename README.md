@@ -64,3 +64,21 @@ default is short (10 s), so `vercel.json` pins `maxDuration` 60 (valid on Hobby)
 `scripts/vercel_layout_local.py --root <bundle> --port 4180` is a **local mimic** (static `public/` first, then the
 `vercel.json` rewrites to `api/index.py`, `X-Forwarded-For` overwritten). It does not prove the real Vercel build, Python
 version, `includeFiles`, cold starts, per-instance behaviour, edge caching or timeouts.
+
+## v2 platform (alpha) — `/api/v2` and `/app/`
+
+The v1 API above is unchanged. v2 adds plantations/plots (GeoJSON), plot weather, model-only MET generation, APSIM configs
+linked to a MET artifact, APSIM runs as jobs, outputs/compare and a plot summary. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+
+```bash
+pip install -r requirements.txt -r requirements-dev.txt
+alembic upgrade head                                   # optional: the API migrates on start (DB_AUTO_MIGRATE=1)
+APSIM_COMMAND="dotnet /opt/apsim/Models.dll" uvicorn api.index:app --port 8077   # backend (v1 + /api/v2)
+JOB_MODE=worker ... && python -m app.workers.run       # optional separate worker
+cd frontend && npm ci && npm run build && npm run preview   # UI on http://localhost:5173/app/ (proxies /api to 8077)
+python scripts/e2e_v2.py --base http://127.0.0.1:8077  # end-to-end check (real Open-Meteo, real APSIM if configured)
+pytest -q && ruff check .
+```
+
+Without an APSIM runtime, runs fail honestly with `apsim_runtime_unavailable`. On Vercel without `DATABASE_URL`, v2 storage is an
+ephemeral `/tmp` sqlite. No authentication yet. Indicative, not validated.
