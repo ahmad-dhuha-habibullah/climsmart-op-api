@@ -9,14 +9,14 @@ import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.v2.routers import plantations, system, workflow
+from app.api.v2.routers import plantations, runner, system, workflow
 from app.core.config import V2Settings
 from app.core.db import Database, run_migrations
 from app.core.errors import install_handlers
 from app.services import apsim as apsim_svc
 from app.services import met as _met  # noqa: F401  (registers the met.generate job handler)
 from app.services.context import Context
-from app.storage import LocalArtifactStore
+from app.storage import make_store
 
 log = logging.getLogger("climsmart.v2")
 
@@ -40,7 +40,7 @@ def build_context(settings: V2Settings | None = None) -> Context | None:
         if settings.auto_migrate:
             run_migrations(settings.database_url)
         ctx = Context(settings=settings, db=Database(settings.database_url),
-                      store=LocalArtifactStore(settings.artifact_dir))
+                      store=make_store(settings))
         apsim_svc.seed_templates(ctx)
     except Exception:  # never let v2 storage problems take down v1
         log.exception("v2 disabled: storage initialisation failed")
@@ -53,9 +53,35 @@ def create_v2_app(ctx: Context | None = None, settings: V2Settings | None = None
                  docs_url="/docs", redoc_url=None, openapi_url="/openapi.json")
     v2.state.ctx = ctx if ctx is not None else build_context(settings)
     install_handlers(v2)
+    _install_write_guard(v2)
     v2.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["GET", "POST", "PATCH", "DELETE"],
-                      allow_headers=["Content-Type"])
+                      allow_headers=["Content-Type", "Authorization", "X-API-Key"])
     v2.include_router(plantations.router)
     v2.include_router(workflow.router)
     v2.include_router(system.router)
+    v2.include_router(runner.router)
     return v2
+
+
+RUNNER_PATHS = ("/bundle", "/callback")
+
+
+def _install_write_guard(v2: FastAPI) -> None:
+    """V2_WRITE_TOKEN set -> POST/PATCH/DELETE need `Authorization: Bearer <token>` or `X-API-Key`. Reads stay public.
+    Runner endpoints are excluded (they check APSIM_CALLBACK_SECRET themselves)."""
+    import hmac
+
+    from fastapi.responses import JSONResponse
+
+    @v2.middleware("http")
+    async def guard(request, call_next):
+        ctx = getattr(v2.state, "ctx", None)
+        token = ctx.settings.write_token if ctx else None
+        if token and request.method not in ("GET", "HEAD", "OPTIONS") and not request.url.path.endswith(RUNNER_PATHS):
+            auth = request.headers.get("authorization", "")
+            given = request.headers.get("x-api-key") or (auth[7:] if auth.lower().startswith("bearer ") else "")
+            if not given or not hmac.compare_digest(given.encode(), token.encode()):
+                return JSONResponse({"error": {"code": "write_token_required", "message":
+                                     "v2 writes need a valid token (Authorization: Bearer or X-API-Key)",
+                                     "details": None}}, status_code=401)
+        return await call_next(request)

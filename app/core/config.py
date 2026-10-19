@@ -28,6 +28,18 @@ class V2Settings:
     weather_timeout_seconds: float
     on_vercel: bool
     ephemeral: bool = False  # True when storage is a throwaway /tmp sqlite (Vercel without DATABASE_URL)
+    apsim_runner: str = "local"  # "local" (APSIM_COMMAND/docker in the worker) or "actions" (GitHub Actions)
+    github_dispatch_token: str | None = None
+    github_repo: str = "ahmad-dhuha-habibullah/climsmart-op-api"
+    github_workflow: str = "apsim-run.yml"
+    github_ref: str = "main"
+    apsim_callback_secret: str | None = None
+    public_base_url: str | None = None
+    artifact_store: str = "local"  # "local" or "supabase"
+    supabase_url: str | None = None
+    supabase_service_key: str | None = None
+    supabase_bucket: str = "climsmart-artifacts"
+    write_token: str | None = None  # V2_WRITE_TOKEN: when set, v2 writes need it; reads stay public
 
     @property
     def storage_configured(self) -> bool:
@@ -58,4 +70,18 @@ class V2Settings:
             weather_timeout_seconds=float(env.get("WEATHER_TIMEOUT_SECONDS", "30") or 30),
             on_vercel=on_vercel,
             ephemeral=ephemeral,
+            artifact_store=(env.get("ARTIFACT_STORE", "").strip() or "local").lower(),
+            supabase_url=env.get("SUPABASE_URL", "").strip() or None,
+            supabase_service_key=env.get("SUPABASE_SERVICE_ROLE_KEY", "").strip() or None,
+            supabase_bucket=env.get("SUPABASE_BUCKET", "").strip() or "climsmart-artifacts",
+            write_token=env.get("V2_WRITE_TOKEN", "").strip() or None,
+            apsim_runner=(env.get("APSIM_RUNNER", "").strip() or "local").lower(),
+            github_dispatch_token=env.get("GITHUB_DISPATCH_TOKEN", "").strip() or None,
+            github_repo=env.get("GITHUB_REPO", "").strip() or "ahmad-dhuha-habibullah/climsmart-op-api",
+            github_workflow=env.get("GITHUB_WORKFLOW_FILE", "").strip() or "apsim-run.yml",
+            github_ref=env.get("GITHUB_REF_NAME_DISPATCH", "").strip() or "main",
+            apsim_callback_secret=env.get("APSIM_CALLBACK_SECRET", "").strip() or None,
+            public_base_url=(env.get("PUBLIC_BASE_URL", "").strip()
+                             or (f"https://{env['VERCEL_PROJECT_PRODUCTION_URL']}"
+                                 if env.get("VERCEL_PROJECT_PRODUCTION_URL") else None)),
         )

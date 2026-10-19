@@ -1,7 +1,8 @@
 import { NavLink, Navigate, Route, Routes } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import logo from "./assets/logo.png";
-import { api } from "./api";
+import { useState } from "react";
+import { api, getToken, setToken } from "./api";
 import { SpatialWorkspace } from "./pages/SpatialWorkspace";
 import { RunView } from "./pages/RunView";
 import { ApsimRuns } from "./pages/ApsimRuns";
@@ -21,6 +22,18 @@ function Health() {
   return null;
 }
 
+function TokenBox() {
+  const [t, setT] = useState(getToken() ?? "");
+  const [saved, setSaved] = useState(!!getToken());
+  return (
+    <div style={{ padding: "8px 16px", fontSize: 11 }}>
+      <label htmlFor="tok" style={{ color: "#cfe0d6" }}>Write token {saved ? "(saved)" : "(read-only without it)"}</label>
+      <input id="tok" type="password" value={t} onChange={(e) => { setT(e.target.value); setSaved(false); }} style={{ width: "100%" }} />
+      <button className="btn small" style={{ marginTop: 4 }} onClick={() => { setToken(t.trim()); setSaved(!!t.trim()); }}>Save</button>
+    </div>
+  );
+}
+
 export function App() {
   return (
     <div className="shell">
@@ -28,6 +41,7 @@ export function App() {
         <div className="logo"><img src={logo} alt="ClimSmart-OP" /></div>
         <div className="nav">{NAV.map((n) => <NavLink key={n.to} to={n.to} className={({ isActive }) => `${isActive ? "active" : ""} ${n.pending ? "pending" : ""}`}>{n.label}</NavLink>)}</div>
         <a href="/" style={{ color: "#cfe0d6", padding: "9px 16px", fontSize: 12 }}>← v1 forecast dashboard</a>
+        <TokenBox />
         <div className="foot">ClimSmart-OP v2 (alpha)<br /><a href="/api/v2/docs" style={{ color: "#cfe0d6" }}>API docs</a></div>
       </nav>
       <div className="main">

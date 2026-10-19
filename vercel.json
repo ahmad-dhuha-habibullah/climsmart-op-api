@@ -28,6 +28,10 @@
     {
       "source": "/app/:path*",
       "destination": "/app/index.html"
+    },
+    {
+      "source": "/legacy",
+      "destination": "/legacy/index.html"
     }
   ],
   "functions": {
@@ -35,5 +39,12 @@
       "maxDuration": 30,
       "includeFiles": "{config/**,data/apsim_results/**,data/forecast_snapshot/**,docs/examples/**,app/apsim_templates/**,migrations/**,alembic.ini}"
     }
-  }
+  },
+  "redirects": [
+    {
+      "source": "/",
+      "destination": "/app/",
+      "permanent": false
+    }
+  ]
 }

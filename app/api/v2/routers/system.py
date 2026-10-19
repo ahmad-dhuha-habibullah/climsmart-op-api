@@ -88,11 +88,25 @@ def health(c: Context = Depends(ctx)):
     with c.db.session() as s:
         queued = s.execute(select(func.count()).where(Job.status == "queued")).scalar()
         running = s.execute(select(func.count()).where(Job.status == "running")).scalar()
+    if c.settings.apsim_runner == "actions":
+        from app.adapters.apsim import actions
+        try:
+            actions.check_ready(c.settings)
+            apsim = {"available": True, "mode": "github-actions", "workflow": c.settings.github_workflow}
+        except Exception as e:  # noqa: BLE001
+            apsim = {"available": False, "mode": "github-actions", "reason": getattr(e, "message", str(e)),
+                     "details": getattr(e, "details", None)}
+        return _health(c, queued, running, apsim)
     try:
         mode, argv = runner.resolve(c.settings.apsim_command, c.settings.apsim_docker_image)
         apsim = {"available": True, "mode": mode, "version": runner.version(mode, argv)}
     except runner.RuntimeUnavailable as e:
         apsim = {"available": False, "reason": str(e)}
+    return _health(c, queued, running, apsim)
+
+
+def _health(c, queued, running, apsim):
     return {"status": "ok", "database": c.db.engine.dialect.name, "artifact_store": c.store.backend,
-            "ephemeral_storage": c.settings.ephemeral,
+            "ephemeral_storage": c.settings.ephemeral, "apsim_runner": c.settings.apsim_runner,
+            "writes_require_token": bool(c.settings.write_token),
             "job_mode": c.settings.job_mode, "jobs": {"queued": queued, "running": running}, "apsim": apsim}

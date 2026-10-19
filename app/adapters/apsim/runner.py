@@ -61,7 +61,8 @@ def version(mode: str, argv: list[str]) -> str | None:
     if mode == "command":
         try:
             p = subprocess.run([*argv, "--version"], capture_output=True, text=True, timeout=60)
-            v = (p.stdout or p.stderr).strip().splitlines()[-1] if (p.stdout or p.stderr).strip() else None
+            lines = [x.strip() for x in (p.stdout + p.stderr).splitlines() if "APSIM" in x or x.strip()[:1].isdigit()]
+            v = lines[-1] if lines else None
         except (OSError, subprocess.TimeoutExpired):
             v = None
     _version_cache[key] = v
@@ -81,7 +82,7 @@ def run(apsimx_text: str, met_bytes: bytes, workdir: Path, *, apsim_command: str
         cmd = [*argv, str(sim)]
     ver = version(mode, argv)
     runtime = {"mode": mode, "command": [Path(cmd[0]).name, *[Path(a).name if "/" in a else a for a in cmd[1:]]],
-               "apsim_version": ver, "timeout_seconds": timeout}
+               "apsim_version": ver, "version": ver, "timeout_seconds": timeout}
     if log_cb:
         log_cb(f"starting APSIM ({mode}, version {ver}) in isolated workdir")
     env = dict(os.environ, DOTNET_CLI_TELEMETRY_OPTOUT="1")

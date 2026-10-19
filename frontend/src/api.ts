@@ -1,6 +1,10 @@
 // Thin client for /api/v2. Every non-2xx is turned into ApiError carrying the server's {error:{code,message,details}}.
 export const BASE = "/api/v2";
 
+const TOKEN_KEY = "climsmart_v2_write_token";
+export const getToken = () => localStorage.getItem(TOKEN_KEY);
+export const setToken = (t: string) => (t ? localStorage.setItem(TOKEN_KEY, t) : localStorage.removeItem(TOKEN_KEY));
+
 export class ApiError extends Error {
   constructor(public status: number, public code: string, message: string, public details?: unknown) { super(message); }
 }
@@ -10,7 +14,7 @@ async function req<T>(method: string, path: string, body?: unknown, form?: FormD
   try {
     res = await fetch(BASE + path, {
       method,
-      headers: body !== undefined ? { "Content-Type": "application/json" } : undefined,
+      headers: { ...(body !== undefined ? { "Content-Type": "application/json" } : {}), ...(method !== "GET" && getToken() ? { "X-API-Key": getToken()! } : {}) },
       body: form ?? (body !== undefined ? JSON.stringify(body) : undefined),
     });
   } catch (e) {

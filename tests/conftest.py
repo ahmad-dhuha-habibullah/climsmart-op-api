@@ -119,6 +119,7 @@ def v2_settings(tmp_path):
     s.job_mode = "inline"
     s.apsim_command = None
     s.apsim_docker_image = None
+    s.apsim_runner, s.write_token, s.ephemeral, s.artifact_store = "local", None, False, "local"
     return s
 
 

@@ -34,6 +34,14 @@ class JobCancelled(Exception):
     pass
 
 
+class JobDeferred(Exception):
+    """The handler handed the work to an external runner; the job stays 'running' until finish() is called."""
+
+    def __init__(self, message: str):
+        super().__init__(message)
+        self.message = message
+
+
 def handler(job_type: str):
     def deco(fn):
         HANDLERS[job_type] = fn
@@ -92,6 +100,9 @@ def execute(ctx: Context, job_id: str) -> None:
         status = "succeeded"
     except JobCancelled:
         status, error = "cancelled", {"code": "cancelled", "message": "cancelled by user"}
+    except JobDeferred as e:
+        append_log(ctx, job_id, e.message)
+        return
     except JobFailed as e:
         error = {"code": e.code, "message": e.message, "details": e.details}
     except ApiError as e:
@@ -100,6 +111,14 @@ def execute(ctx: Context, job_id: str) -> None:
         log.exception("job %s crashed", job_id)
         append_log(ctx, job_id, "unexpected error:\n" + traceback.format_exc()[-3000:])
         error = {"code": "internal_error", "message": f"{e.__class__.__name__}: {e}"}
+    with ctx.db.session() as s:
+        j = s.get(Job, job_id)
+        j.status, j.result, j.error, j.finished_at = status, result, error, utcnow()
+        j.logs = (j.logs or "") + f"{utcnow().isoformat()} {status}" + (f": {error['message']}" if error else "") + "\n"
+
+
+def finish(ctx: Context, job_id: str, status: str, result=None, error=None) -> None:
+    """Record the outcome of a deferred (externally executed) job."""
     with ctx.db.session() as s:
         j = s.get(Job, job_id)
         j.status, j.result, j.error, j.finished_at = status, result, error, utcnow()

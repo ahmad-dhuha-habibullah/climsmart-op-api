@@ -1,0 +1,82 @@
+name: APSIM run
+
+# Dispatched by the v2 API (APSIM_RUNNER=actions) with run_id + callback_url (= <base>/api/v2/apsim/runs/<run_id>).
+# test_mode=true runs the committed sample bundle (samples/apsim) and only uploads artifacts (no callback).
+on:
+  workflow_dispatch:
+    inputs:
+      run_id: { description: "v2 APSIM run id", required: false, default: "" }
+      callback_url: { description: "API run URL (bundle + callback)", required: false, default: "" }
+      test_mode: { description: "Run samples/apsim, no callback", type: boolean, required: false, default: false }
+
+concurrency:
+  group: apsim-${{ inputs.run_id || github.run_id }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  IMAGE: apsiminitiative/apsimng:8030   # APSIM NG 2026.4.8030 (same build as the ClimSmartOP repo)
+
+jobs:
+  apsim:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      RUN_ID: ${{ inputs.run_id }}
+      RUN_URL: ${{ inputs.callback_url }}
+      SECRET: ${{ secrets.APSIM_CALLBACK_SECRET }}
+      ACTIONS_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+    steps:
+      - name: Checkout samples (test mode)
+        if: inputs.test_mode
+        uses: actions/checkout@v4
+        with: { sparse-checkout: samples/apsim }
+      - name: Get inputs
+        run: |
+          mkdir -p w && chmod 777 w
+          if [ "${{ inputs.test_mode }}" = "true" ]; then
+            cp samples/apsim/simulation.apsimx samples/apsim/weather.met w/
+          else
+            test -n "$RUN_ID" && test -n "$RUN_URL" && test -n "$SECRET" || { echo "run_id, callback_url and APSIM_CALLBACK_SECRET are required" | tee w/apsim.log; exit 1; }
+            curl -fsS --retry 3 -H "X-ClimSmart-Callback-Secret: $SECRET" "$RUN_URL/bundle" -o bundle.tgz
+            tar -xzf bundle.tgz -C w
+          fi
+          ls -la w
+      - name: Pull APSIM image
+        run: docker pull -q "$IMAGE"
+      - name: Run APSIM
+        timeout-minutes: 20
+        run: |
+          docker run --rm --entrypoint Models "$IMAGE" --version 2>&1 | tail -1 | tee version.txt
+          start=$(date +%s)
+          set -o pipefail
+          docker run --rm --network none -v "$PWD/w:/w" "$IMAGE" /w/simulation.apsimx 2>&1 | tee -a w/apsim.log
+          echo "SECONDS_TAKEN=$(( $(date +%s) - start ))" >> "$GITHUB_ENV"
+          test -s w/simulation.db || { echo "APSIM produced no simulation.db" | tee -a w/apsim.log; exit 1; }
+          gzip -k w/simulation.db
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: apsim-${{ inputs.run_id || 'test' }}
+          path: |
+            w/simulation.db
+            w/apsim.log
+            version.txt
+          if-no-files-found: ignore
+          retention-days: 14
+      - name: Callback (success)
+        if: success() && inputs.test_mode != true
+        run: |
+          curl -fsS --retry 3 -H "X-ClimSmart-Callback-Secret: $SECRET" \
+            -F status=succeeded -F "apsim_version=$(cat version.txt)" -F "seconds=$SECONDS_TAKEN" -F "runner_url=$ACTIONS_URL" \
+            -F "db=@w/simulation.db.gz" -F "log=@w/apsim.log" "$RUN_URL/callback"
+      - name: Callback (failure)
+        if: failure() && inputs.test_mode != true && env.RUN_URL != ''
+        run: |
+          touch w/apsim.log
+          curl -fsS --retry 3 -H "X-ClimSmart-Callback-Secret: $SECRET" \
+            -F status=failed -F "message=APSIM failed in GitHub Actions (see runner_url)" -F "apsim_version=$(cat version.txt 2>/dev/null)" \
+            -F "runner_url=$ACTIONS_URL" -F "log=@w/apsim.log" "$RUN_URL/callback"

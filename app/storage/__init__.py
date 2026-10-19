@@ -29,6 +29,57 @@ class ArtifactStore(abc.ABC):
         """A readable local file for `key` (an S3 store would download to a cache dir)."""
 
 
+class SupabaseArtifactStore(ArtifactStore):
+    """Supabase Storage (private bucket) via its REST API with the service-role key; reads cached under /tmp."""
+
+    backend = "supabase"
+
+    def __init__(self, url: str, service_key: str, bucket: str, cache_dir: Path = Path("/tmp/climsmart-artifact-cache")):
+        import httpx
+
+        self.bucket, self.cache = bucket, Path(cache_dir)
+        self._c = httpx.Client(base_url=url.rstrip("/") + "/storage/v1", timeout=60,
+                               headers={"Authorization": f"Bearer {service_key}", "apikey": service_key})
+
+    @staticmethod
+    def _check(key: str) -> str:
+        if key.startswith("/") or ".." in key.split("/"):
+            raise ValueError("invalid artifact key")
+        return key
+
+    def put_bytes(self, key: str, data: bytes) -> None:
+        r = self._c.post(f"/object/{self.bucket}/{self._check(key)}", content=data,
+                         headers={"x-upsert": "true", "Content-Type": "application/octet-stream"})
+        if r.status_code >= 300:
+            raise RuntimeError(f"artifact upload failed: HTTP {r.status_code}")
+
+    def put_file(self, key: str, src: Path) -> None:
+        self.put_bytes(key, Path(src).read_bytes())
+
+    def get_bytes(self, key: str) -> bytes:
+        p = self.cache / self._check(key)
+        if p.exists():
+            return p.read_bytes()
+        r = self._c.get(f"/object/authenticated/{self.bucket}/{key}")
+        if r.status_code != 200:
+            raise RuntimeError(f"artifact download failed: HTTP {r.status_code}")
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_bytes(r.content)
+        return r.content
+
+    def local_path(self, key: str) -> Path:
+        self.get_bytes(key)
+        return self.cache / key
+
+
+def make_store(settings) -> ArtifactStore:
+    if settings.artifact_store == "supabase":
+        if not (settings.supabase_url and settings.supabase_service_key):
+            raise RuntimeError("ARTIFACT_STORE=supabase needs SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY")
+        return SupabaseArtifactStore(settings.supabase_url, settings.supabase_service_key, settings.supabase_bucket)
+    return LocalArtifactStore(settings.artifact_dir)
+
+
 class LocalArtifactStore(ArtifactStore):
     backend = "local"
 

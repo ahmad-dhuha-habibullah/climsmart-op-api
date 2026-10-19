@@ -15,3 +15,5 @@ frontend/dist/
 ci-migrate.db
 !app/apsim_templates/*.apsimx
 *.egg-info/
+!samples/apsim/*.apsimx
+!samples/apsim/*.met

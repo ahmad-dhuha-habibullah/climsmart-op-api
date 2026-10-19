@@ -102,6 +102,9 @@ def request_run(ctx: Context, config_id: str, label: str | None, background) -> 
         m = s.get(MetFile, c.met_file_id)
         if m is None or m.status != "valid" or not m.artifact_id:
             raise conflict("met_not_valid", "the configuration's MET artifact is no longer valid/available")
+        if ctx.settings.apsim_runner == "actions":
+            from app.adapters.apsim import actions
+            actions.check_ready(ctx.settings)
         r = ApsimRun(id=new_id("run"), config_id=c.id, plot_id=c.plot_id, label=label, status="queued")
         s.add(r)
         j = jobs.create(s, "apsim.run", {"run_id": r.id, "config_id": c.id}, plot_id=c.plot_id,
@@ -112,9 +115,8 @@ def request_run(ctx: Context, config_id: str, label: str | None, background) -> 
     return {"run_id": rid}, jid
 
 
-@jobs.handler("apsim.run")
-def run_apsim_job(ctx: Context, job_id: str) -> dict:
-    log = lambda line: jobs.append_log(ctx, job_id, line)  # noqa: E731
+def _prepare(ctx: Context, job_id: str) -> dict:
+    """Load the run's inputs, verify artifact integrity, mark the run running and pin its provenance."""
     with ctx.db.session() as s:
         j = jobs.get(s, job_id)
         r = s.get(ApsimRun, j.params["run_id"])
@@ -122,22 +124,78 @@ def run_apsim_job(ctx: Context, job_id: str) -> dict:
         m = s.get(MetFile, c.met_file_id)
         cfg_art, met_art = s.get(Artifact, c.apsimx_artifact_id), s.get(Artifact, m.artifact_id)
         t = s.get(ApsimTemplate, c.template_id)
-        r.status = "running"
-        run_id, plot_id = r.id, r.plot_id
         apsimx = ctx.store.get_bytes(cfg_art.storage_key)
         met_bytes = ctx.store.get_bytes(met_art.storage_key)
         for art, data in ((cfg_art, apsimx), (met_art, met_bytes)):
             if hashlib.sha256(data).hexdigest() != art.sha256:
                 raise jobs.JobFailed("artifact_integrity", f"artifact {art.id} does not match its sha256")
-        provenance = {"plot_id": plot_id, "config": {"id": c.id, "name": c.name, "version": c.version,
-                                                     "params": c.params, "apsimx_sha256": cfg_art.sha256},
+        provenance = {"plot_id": r.plot_id, "config": {"id": c.id, "name": c.name, "version": c.version,
+                                                       "params": c.params, "apsimx_sha256": cfg_art.sha256},
                       "template": {"id": t.id, "slug": t.slug, "version": t.version, "sha256": t.sha256},
                       "met": {"met_file_id": m.id, "artifact_id": met_art.id, "sha256": met_art.sha256,
-                              "strategy": m.strategy, "period": [m.start_date.isoformat(), m.end_date.isoformat()]}}
+                              "strategy": m.strategy, "start_date": m.start_date.isoformat(),
+                              "end_date": m.end_date.isoformat(),
+                              "period": [m.start_date.isoformat(), m.end_date.isoformat()]}}
+        r.status, r.provenance = "running", provenance
+        return {"run_id": r.id, "plot_id": r.plot_id, "provenance": provenance, "apsimx": apsimx, "met": met_bytes}
+
+
+def complete_run(ctx: Context, job_id: str, run_id: str, db_path: Path, log_text: str, seconds: float | None,
+                 runtime: dict) -> dict:
+    """Register a finished APSIM run's .db + log, parse its output catalog and mark run (not job) succeeded."""
+    cat = outlib.catalog(db_path)
+    warnings = [x for x in outlib.messages(db_path) if x.get("MessageType") in (0, 1)][:20]
+    with ctx.db.session() as s:
+        r = s.get(ApsimRun, run_id)
+        provenance = {**(r.provenance or {}), "apsim": runtime}
+        dba = register_artifact(s, ctx.store, kind="apsim_db", filename=f"{run_id}.db",
+                                media_type="application/vnd.sqlite3", src=db_path, plot_id=r.plot_id,
+                                job_id=job_id, provenance={"run_id": run_id, **provenance})
+        la = register_artifact(s, ctx.store, kind="apsim_log", filename=f"{run_id}.log", media_type="text/plain",
+                               data=log_text.encode(), plot_id=r.plot_id, job_id=job_id, provenance={"run_id": run_id})
+        for tbl in cat:
+            s.add(RunOutput(id=new_id("out"), run_id=run_id, table_name=tbl["table_name"],
+                            variables=tbl["variables"], row_count=tbl["row_count"],
+                            first_date=date.fromisoformat(tbl["first_date"]) if tbl["first_date"] else None,
+                            last_date=date.fromisoformat(tbl["last_date"]) if tbl["last_date"] else None))
+        r.status, r.runtime, r.runtime_seconds = "succeeded", runtime, seconds
+        r.db_artifact_id, r.log_artifact_id, r.finished_at = dba.id, la.id, utcnow()
+        r.provenance = {**provenance, "apsim_messages": warnings}
+        dbid = dba.id
+    jobs.append_log(ctx, job_id, f"registered {len(cat)} output table(s): "
+                    + ", ".join(f"{t['table_name']}({t['row_count']})" for t in cat))
+    return {"run_id": run_id, "db_artifact_id": dbid, "tables": [t["table_name"] for t in cat]}
+
+
+def fail_run_with_log(ctx: Context, job_id: str, run_id: str, code: str, message: str, log_text: str,
+                      runtime: dict | None = None) -> str:
+    with ctx.db.session() as s:
+        r = s.get(ApsimRun, run_id)
+        la = register_artifact(s, ctx.store, kind="apsim_log", filename=f"{run_id}.log", media_type="text/plain",
+                               data=log_text.encode(), plot_id=r.plot_id, job_id=job_id, provenance={"run_id": run_id})
+        laid, prov = la.id, {**(r.provenance or {}), **({"apsim": runtime} if runtime else {})}
+    jobs.append_log(ctx, job_id, "APSIM failed; log tail:\n" + log_text[-2000:])
+    _fail(ctx, run_id, code, message, prov, log_artifact_id=laid)
+    return laid
+
+
+@jobs.handler("apsim.run")
+def run_apsim_job(ctx: Context, job_id: str) -> dict:
+    log = lambda line: jobs.append_log(ctx, job_id, line)  # noqa: E731
+    p = _prepare(ctx, job_id)
+    run_id, provenance = p["run_id"], p["provenance"]
+    if ctx.settings.apsim_runner == "actions":
+        from app.adapters.apsim import actions
+        try:
+            url = actions.dispatch(ctx.settings, run_id)
+        except actions.DispatchFailed as e:
+            _fail(ctx, run_id, "actions_dispatch_failed", str(e), provenance)
+            raise jobs.JobFailed("actions_dispatch_failed", str(e))
+        raise jobs.JobDeferred(f"dispatched to GitHub Actions ({url}); waiting for the workflow callback")
     workdir = Path(tempfile.mkdtemp(prefix=f"apsim-{run_id}-"))
     try:
         try:
-            res = runner.run(apsimx.decode("utf-8"), met_bytes, workdir, apsim_command=ctx.settings.apsim_command,
+            res = runner.run(p["apsimx"].decode("utf-8"), p["met"], workdir, apsim_command=ctx.settings.apsim_command,
                              docker_image=ctx.settings.apsim_docker_image, timeout=ctx.settings.apsim_timeout_seconds,
                              met_filename=tpl.MET_FILENAME, should_cancel=lambda: jobs.cancel_requested(ctx, job_id),
                              log_cb=log)
@@ -148,36 +206,10 @@ def run_apsim_job(ctx: Context, job_id: str) -> dict:
             _fail(ctx, run_id, "cancelled", "cancelled by user", provenance, status="cancelled")
             raise jobs.JobCancelled()
         except runner.RunFailed as e:
-            with ctx.db.session() as s:
-                la = register_artifact(s, ctx.store, kind="apsim_log", filename=f"{run_id}.log",
-                                       media_type="text/plain", data=e.log.encode(), plot_id=plot_id, job_id=job_id,
-                                       provenance={"run_id": run_id})
-                laid = la.id
-            log("APSIM failed; log tail:\n" + e.log[-2000:])
-            _fail(ctx, run_id, "apsim_failed", str(e), provenance, log_artifact_id=laid)
+            laid = fail_run_with_log(ctx, job_id, run_id, "apsim_failed", str(e), e.log)
             raise jobs.JobFailed("apsim_failed", str(e), {"log_artifact_id": laid})
         log(f"APSIM finished in {res.seconds} s")
-        cat = outlib.catalog(res.db_path)
-        warnings = [x for x in outlib.messages(res.db_path) if x.get("MessageType") in (0, 1)][:20]
-        provenance["apsim"] = res.runtime
-        with ctx.db.session() as s:
-            dba = register_artifact(s, ctx.store, kind="apsim_db", filename=f"{run_id}.db",
-                                    media_type="application/vnd.sqlite3", src=res.db_path, plot_id=plot_id,
-                                    job_id=job_id, provenance={"run_id": run_id, **provenance})
-            la = register_artifact(s, ctx.store, kind="apsim_log", filename=f"{run_id}.log", media_type="text/plain",
-                                   data=res.log.encode(), plot_id=plot_id, job_id=job_id, provenance={"run_id": run_id})
-            for tbl in cat:
-                s.add(RunOutput(id=new_id("out"), run_id=run_id, table_name=tbl["table_name"],
-                                variables=tbl["variables"], row_count=tbl["row_count"],
-                                first_date=date.fromisoformat(tbl["first_date"]) if tbl["first_date"] else None,
-                                last_date=date.fromisoformat(tbl["last_date"]) if tbl["last_date"] else None))
-            r = s.get(ApsimRun, run_id)
-            r.status, r.runtime, r.runtime_seconds = "succeeded", res.runtime, res.seconds
-            r.db_artifact_id, r.log_artifact_id, r.finished_at = dba.id, la.id, utcnow()
-            r.provenance = {**provenance, "apsim_messages": warnings}
-            dbid = dba.id
-        log(f"registered {len(cat)} output table(s): " + ", ".join(f"{t['table_name']}({t['row_count']})" for t in cat))
-        return {"run_id": run_id, "db_artifact_id": dbid, "tables": [t["table_name"] for t in cat]}
+        return complete_run(ctx, job_id, run_id, res.db_path, res.log, res.seconds, res.runtime)
     finally:
         shutil.rmtree(workdir, ignore_errors=True)
 
@@ -185,7 +217,9 @@ def run_apsim_job(ctx: Context, job_id: str) -> dict:
 def _fail(ctx, run_id, code, message, provenance, status="failed", log_artifact_id=None):
     with ctx.db.session() as s:
         r = s.get(ApsimRun, run_id)
-        r.status, r.error, r.finished_at, r.provenance = status, {"code": code, "message": message}, utcnow(), provenance
+        r.status, r.error, r.finished_at = status, {"code": code, "message": message}, utcnow()
+        if provenance is not None:
+            r.provenance = provenance
         if log_artifact_id:
             r.log_artifact_id = log_artifact_id
 

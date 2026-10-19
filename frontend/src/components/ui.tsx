@@ -12,7 +12,7 @@ export function SourceTag({ kind }: { kind: "apsim" | "om" | "user" | "synthetic
 export function ErrorState({ error, onRetry }: { error: unknown; onRetry?: () => void }) {
   const e = error instanceof ApiError ? error : new ApiError(0, "unknown", String(error));
   const title = e.status === 404 ? "Not found" : e.status === 503 ? "Service unavailable" : e.status === 502 ? "Data source error"
-    : e.status === 0 ? "Connection problem" : e.status === 409 ? "Not allowed in the current state" : e.status === 422 ? "Check the input" : "Something went wrong";
+    : e.status === 401 ? "Write token required" : e.status === 0 ? "Connection problem" : e.status === 409 ? "Not allowed in the current state" : e.status === 422 ? "Check the input" : "Something went wrong";
   return (
     <div className="state" role="alert">
       <b>{title} <span className="mono muted">{e.status ? `HTTP ${e.status} · ` : ""}{e.code}</span></b>
