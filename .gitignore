@@ -13,3 +13,5 @@ frontend/dist/
 *.db-shm
 *.db-wal
 ci-migrate.db
+!app/apsim_templates/*.apsimx
+*.egg-info/
