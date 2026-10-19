@@ -33,7 +33,7 @@
   "functions": {
     "api/index.py": {
       "maxDuration": 30,
-      "includeFiles": "{config,data/apsim_results,data/forecast_snapshot,docs/examples,app/apsim_templates,migrations}/**"
+      "includeFiles": "{config/**,data/apsim_results/**,data/forecast_snapshot/**,docs/examples/**,app/apsim_templates/**,migrations/**,alembic.ini}"
     }
   }
 }

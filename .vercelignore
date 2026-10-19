@@ -10,3 +10,4 @@ data/hindcast/
 frontend/
 tests/
 data/v2/
+!app/apsim_templates/*.apsimx
